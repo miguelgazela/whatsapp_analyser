@@ -4,10 +4,12 @@ urls = (
 	'/', 'index'
 )
 
+render = web.template.render('templates/')
+
 class index:
 
 	def GET(self):
-		return "Hello, World!"
+		return render.index()
 
 
 if __name__ == "__main__":
