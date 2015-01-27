@@ -8,6 +8,33 @@
 	padding-top: 50px;
 }
 
+/* Reset the container */
+.container {
+  width: 1170px;
+  max-width: none !important;
+}
+
+/* Undo the collapsing navbar */
+.navbar-collapse {
+  display: block !important;
+  height: auto !important;
+  padding-bottom: 0;
+  overflow: visible !important;
+  visibility: visible !important;
+}
+
+.navbar-toggle {
+  display: none;
+}
+.navbar-collapse {
+  border-top: 0;
+}
+
+.navbar-brand {
+  margin-left: -15px;
+}
+
+
 .bar rect {
   fill: orange;
 }
@@ -75,6 +102,20 @@
     opacity: 0.1;
 }
 
+
+
+
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
 
 
 
