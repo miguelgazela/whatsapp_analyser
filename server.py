@@ -26,34 +26,42 @@ class upload:
 		return render.base(view.upload(), title='Upload Chat File')
 
 	def POST(self):
-		x = web.input(conversation={})
-		web.debug(x['conversation'].filename)
 
+		# getting file from input
+		x = web.input(conversation={})
 		text = x['conversation'].file.read()
 
-		print 'Loading messages from file'
-		result = {}
-
+		# reading all lines from the text
 		lines = anal.get_lines(text)
-		results.num_messages = len(lines)
 		session.num_messages = len(lines)
 
-		messages_by_user = anal.get_messages_by_user(lines)
+		# get different messages of users and days
+		sup_results = anal.superficial_analysis(lines)
 
 		# for each user, process messages
 		session.users = []
 		session.messages_by_user = []
 
-		result['users'] = []
-
-		for user in messages_by_user.keys():
+		for user in sup_results['messages'].keys():
 			session.users.append(user)
 			session.messages_by_user.append({
 				'name': user,
-				'num_messages': len(messages_by_user[user])
+				'num_messages': len(sup_results['messages'][user])
 			})
 
-			print "Processing messages from {}".format(user)
+		# built information about the days where messages where exchanged
+		session.overview = {}
+		session.overview['days'] = []
+
+		for day in sup_results['days'].keys():
+			session.overview['days'].append({
+				'date': day,
+				'num_messages': sup_results['days'][day]
+			})
+
+		session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
+		session.overview['num_days'] = sup_results['days']['overview']['num_days']
+		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
 
 		session.messages_by_user = json.dumps(session.messages_by_user)
 		raise web.seeother('/results')

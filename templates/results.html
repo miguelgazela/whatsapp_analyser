@@ -24,7 +24,7 @@ $def with (context)
 <div class="container main-content">
   <div class="row">
 
-    <div class="col-sm-8">
+    <div class="col-sm-12">
       <div class="page-header">
         <h1>Analysis Results</h1>
       </div>
@@ -43,55 +43,51 @@ $def with (context)
         <div class="panel-body">
           <table class="table table-striped">
             <tbody>
-              <tr><td>In total, the $len(context.users) people in this chat sent $context.num_messages messages over 412 days. Person 2 spoke the most, saying a total of 5,089 words.</td></tr>
+              <tr><td>In total, the <strong>$len(context.users)</strong> people in this chat sent <strong>$context.num_messages</strong> messages over <strong>$context.overview['num_days']</strong> days. </td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <div class="row">
+        
+        <div class="col-sm-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Who's the biggest spammer?</h3>
+            </div>
+            <div class="panel-body">
+              <div id="biggestSpammerSvg"></div>
+            </div>
+            <div class="panel-footer hidden" id="biggestSpammerRes"></div>
+          </div>
+        </div>
+        
+        <div class="col-sm-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Who's getting the biggest slice?</h3>
+            </div>
+            <div class="panel-body">
+              <div id="biggestSliceSvg"></div>
+            </div>
+            <div class="panel-footer hidden" id="biggestSliceRes"></div>
+          </div>
+        </div>
+      
+      </div>
+      
+
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Who's the biggest spammer?</h3>
+          <h3 class="panel-title">Distribution Over Time</h3>
         </div>
         <div class="panel-body">
-          <div id="biggestSpammerSvg"></div>
+          <div id="distributionOverTimeSvg"></div>
         </div>
-        <div class="panel-footer hidden" id="biggestSpammerRes"></div>
       </div>
 
-    </div>
-
-    <div class="col-sm-3 col-sm-offset-1">
-      <div class="sidebar-module sidebar-module-inset">
-        <h4>About</h4>
-        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
-      </div>
-      <div class="sidebar-module">
-        <h4>Archives</h4>
-        <ol class="list-unstyled">
-          <li><a href="#">March 2014</a></li>
-          <li><a href="#">February 2014</a></li>
-          <li><a href="#">January 2014</a></li>
-          <li><a href="#">December 2013</a></li>
-          <li><a href="#">November 2013</a></li>
-          <li><a href="#">October 2013</a></li>
-          <li><a href="#">September 2013</a></li>
-          <li><a href="#">August 2013</a></li>
-          <li><a href="#">July 2013</a></li>
-          <li><a href="#">June 2013</a></li>
-          <li><a href="#">May 2013</a></li>
-          <li><a href="#">April 2013</a></li>
-        </ol>
-      </div>
-      <div class="sidebar-module">
-        <h4>Elsewhere</h4>
-        <ol class="list-unstyled">
-          <li><a href="#">GitHub</a></li>
-          <li><a href="#">Twitter</a></li>
-          <li><a href="#">Facebook</a></li>
-        </ol>
-      </div>
-    </div>
+    </div> <!-- /col-sm-12 -->
 
   </div>
 </div>
@@ -105,15 +101,19 @@ $def with (context)
   </footer>
 </div>
 
+<div class="hidden" id="overviewData"></div>
+<div class="hidden" id="daysByUser">$context.overview['days_by_user']</div>
 <div class="hidden" id="biggestSpammerData">$context.messages_by_user</div>
 
 <script type="text/javascript">
   $$(document).ready(function() {
     buildBiggestSpammerGraph();
+    buildBiggestSliceGraph();
+    buildDistributionOverTimeGraph();
   });
 
   function buildBiggestSpammerGraph() {
-    var conf = getSvgConf(30, 40);
+    var conf = getSvgConf(30, 40, 30, 100);
     var format = d3.format(",.0f");
 
     var x = d3.scale.linear().range([0, conf.width]);
@@ -121,7 +121,7 @@ $def with (context)
     var xAxis = getSimpleAxis(x, "top").tickSize(-conf.height);
     var yAxis = getSimpleAxis(y, "left").tickSize(0);
 
-    var color = d3.scale.category10();
+    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
 
     var svg = getSvgAddedTo("#biggestSpammerSvg", conf);
 
@@ -163,19 +163,99 @@ $def with (context)
 
   };
 
+  function buildBiggestSliceGraph() {
+    var conf = getSvgConf(30, 40, 30, 100);
+    var radius = Math.min(conf.width, conf.height) / 2;
+
+    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
+
+    var arc = d3.svg.arc()
+      .outerRadius(radius - 10)
+      .innerRadius(0);
+
+    var pie = d3.layout.pie()
+      .sort(null)
+      .value(function(d) { return d.num_messages; });
+
+    var svg = d3.select("#biggestSliceSvg").append("svg")
+      .attr("width", conf.width + conf.margin.left + conf.margin.right)
+      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + (conf.width / 2) + "," + (conf.height / 2) + ")");
+
+    var data = JSON.parse(document.getElementById("biggestSpammerData").innerHTML);
+
+    var g = svg.selectAll(".arc")
+      .data(pie(data))
+      .enter().append("g")
+        .attr("class", "arc");
+
+    g.append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { return color(d.data.name); });
+
+    g.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .text(function(d) { return d.data.name; });
+
+    
+  };
+
+  function buildDistributionOverTimeGraph() {
+
+    var raw_data = JSON.parse(document.getElementById('daysByUser').innerHTML);
+
+    var data = []
+    var minDate = moment();
+
+    _.each(Object.keys(raw_data), function(d) {
+      data.push({
+        name: d,
+        dates: _.map(raw_data[d], function (d) {
+          var msgDate = moment(d);
+
+          // determine the starting date
+          if(minDate.isAfter(d)) {
+            minDate = msgDate;
+          }
+
+          return msgDate;
+        })
+      });
+    });
+
+    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
+
+    var eventDropsChart = d3.chart.eventDrops()
+      .width(960)
+      .start(minDate)
+      .eventHover(function(e){
+        // console.log(e);
+      })
+      .eventLineColor(function (datum, index) {
+          return color(index);
+      });
+
+    d3.select('#distributionOverTimeSvg')
+      .datum(data)
+      .call(eventDropsChart);
+  };
+
   function getSvgAddedTo(id, conf) {
     return d3.select(id).append("svg")
       .attr("width", conf.width + conf.margin.left + conf.margin.right)
       .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
       .append("g")
       .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
-  }
+  };
 
   function getSimpleAxis(scale, orientation) {
     return d3.svg.axis()
       .scale(scale)
       .orient(orientation);
-  }
+  };
 
   function getSvgConf(first, second, third_opt, forth_opt) {
 
@@ -184,7 +264,7 @@ $def with (context)
     }
 
     var margin = {top: first, right: second, bottom: third_opt ? third_opt : first, left: forth_opt ? forth_opt : second},
-    width = 600 - margin.left - margin.right,
+    width = 500 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
     return {
@@ -192,6 +272,6 @@ $def with (context)
         width: width,
         height: height
     }
-}
+};
 </script>
     
