@@ -121,7 +121,7 @@ $def with (context)
     var xAxis = getSimpleAxis(x, "top").tickSize(-conf.height);
     var yAxis = getSimpleAxis(y, "left").tickSize(0);
 
-    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
+    var color = getColorScale();
 
     var svg = getSvgAddedTo("#biggestSpammerSvg", conf);
 
@@ -167,7 +167,7 @@ $def with (context)
     var conf = getSvgConf(30, 40, 30, 100);
     var radius = Math.min(conf.width, conf.height) / 2;
 
-    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
+    var color = getColorScale();
 
     var arc = d3.svg.arc()
       .outerRadius(radius - 10)
@@ -199,9 +199,8 @@ $def with (context)
         .attr("dy", ".35em")
         .style("text-anchor", "middle")
         .text(function(d) { return d.data.name; });
-
-    
   };
+
 
   function buildDistributionOverTimeGraph() {
 
@@ -226,7 +225,7 @@ $def with (context)
       });
     });
 
-    var color = d3.scale.ordinal().range(["#3498db", "#2ecc71", "#e74c3c", "#95a5a6", "#9b59b6", "#34495e", "#f1c40f"]);
+    var color = getColorScale();
 
     var eventDropsChart = d3.chart.eventDrops()
       .width(960)
@@ -242,6 +241,16 @@ $def with (context)
       .datum(data)
       .call(eventDropsChart);
   };
+  
+
+  function getColorScale() {
+    if($len(context.users) === 2) {
+      return d3.scale.ordinal().range(['#ea4b54', "#bdc3c7"]);
+    } else {
+      return d3.scale.category10();
+    }
+  }
+
 
   function getSvgAddedTo(id, conf) {
     return d3.select(id).append("svg")
@@ -251,11 +260,13 @@ $def with (context)
       .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
   };
 
+
   function getSimpleAxis(scale, orientation) {
     return d3.svg.axis()
       .scale(scale)
       .orient(orientation);
   };
+
 
   function getSvgConf(first, second, third_opt, forth_opt) {
 
