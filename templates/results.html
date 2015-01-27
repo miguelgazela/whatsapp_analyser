@@ -1,3 +1,4 @@
+$def with (context)
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -11,19 +12,186 @@
       <a class="navbar-brand" href="#">WhatsApp Chat Analyzer</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
-      
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="/upload">Analyse</a></li>
+      </ul>
     </div><!--/.navbar-collapse -->
   </div>
 </nav>
 
-<div class="container">
-  <h3>Results</h3>
+<div class="container main-content">
+  <div class="row">
+
+    <div class="col-sm-8">
+      <div class="page-header">
+        <h1>Analysis Results</h1>
+      </div>
+
+      <h4>Participants</h4>
+      $for name in context.users:
+          <span class="label label-primary">$name</span>
+      
+      <h4>Number of Messages</h4> 
+        $context.num_messages
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Overview</h3>
+        </div>
+        <div class="panel-body">
+          <table class="table table-striped">
+            <tbody>
+              <tr><td>In total, the $len(context.users) people in this chat sent $context.num_messages messages over 412 days. Person 2 spoke the most, saying a total of 5,089 words.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Who's the biggest spammer?</h3>
+        </div>
+        <div class="panel-body">
+          <div id="biggestSpammerSvg"></div>
+        </div>
+        <div class="panel-footer hidden" id="biggestSpammerRes"></div>
+      </div>
+
+    </div>
+
+    <div class="col-sm-3 col-sm-offset-1">
+      <div class="sidebar-module sidebar-module-inset">
+        <h4>About</h4>
+        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
+      </div>
+      <div class="sidebar-module">
+        <h4>Archives</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">March 2014</a></li>
+          <li><a href="#">February 2014</a></li>
+          <li><a href="#">January 2014</a></li>
+          <li><a href="#">December 2013</a></li>
+          <li><a href="#">November 2013</a></li>
+          <li><a href="#">October 2013</a></li>
+          <li><a href="#">September 2013</a></li>
+          <li><a href="#">August 2013</a></li>
+          <li><a href="#">July 2013</a></li>
+          <li><a href="#">June 2013</a></li>
+          <li><a href="#">May 2013</a></li>
+          <li><a href="#">April 2013</a></li>
+        </ol>
+      </div>
+      <div class="sidebar-module">
+        <h4>Elsewhere</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 
 <hr>
 
-<footer>
-  <p>&copy; Company 2014</p>
-</footer>
+<div class="container">
+  <footer>
+    <p>TU Delft - Data Visualization 2014/2015</p>
+  </footer>
+</div>
+
+<div class="hidden" id="biggestSpammerData">$context.messages_by_user</div>
+
+<script type="text/javascript">
+  $$(document).ready(function() {
+    buildBiggestSpammerGraph();
+  });
+
+  function buildBiggestSpammerGraph() {
+    var conf = getSvgConf(30, 40);
+    var format = d3.format(",.0f");
+
+    var x = d3.scale.linear().range([0, conf.width]);
+    var y = d3.scale.ordinal().rangeRoundBands([conf.height, 0], .4);
+    var xAxis = getSimpleAxis(x, "top").tickSize(-conf.height);
+    var yAxis = getSimpleAxis(y, "left").tickSize(0);
+
+    var color = d3.scale.category10();
+
+    var svg = getSvgAddedTo("#biggestSpammerSvg", conf);
+
+    var data = JSON.parse(document.getElementById("biggestSpammerData").innerHTML);
+
+    x.domain([0, d3.max(data, function(d) { return d.num_messages; })]);
+    y.domain(data.map(function (d) { return d.name; }));
+
+    var bar = svg.selectAll("g.bar")
+      .data(data)
+      .enter().append("g")
+        .attr("class", "bar")
+        .attr("transform", function(d) { return "translate(0," + y(d.name) + ")"; });
+
+    bar.append("rect")
+        .attr("width", function(d) { return x(d.num_messages); })
+        .style("fill", function(d) { return color(d.name)})
+        .attr("height", y.rangeBand());
+
+    bar.append("text")
+        .attr("class", "value")
+        .attr("x", function(d) { return x(d.num_messages); })
+        .attr("y", y.rangeBand() / 2)
+        .attr("dx", -3)
+        .attr("dy", ".35em")
+        .attr("text-anchor", "end")
+        .text(function(d) { return format(d.num_messages); });
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    var biggestSpammer = _.max(data, function (d) { return d.num_messages;});
+    $$('#biggestSpammerRes').html(biggestSpammer.name + ' is clearly the biggest spammer with ' + biggestSpammer.num_messages + ' messages sent.').removeClass('hidden');
+
+  };
+
+  function getSvgAddedTo(id, conf) {
+    return d3.select(id).append("svg")
+      .attr("width", conf.width + conf.margin.left + conf.margin.right)
+      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
+  }
+
+  function getSimpleAxis(scale, orientation) {
+    return d3.svg.axis()
+      .scale(scale)
+      .orient(orientation);
+  }
+
+  function getSvgConf(first, second, third_opt, forth_opt) {
+
+    if(arguments.length != 2 && arguments.length != 4) {
+        throw "Illegal number of arguments. Was expecting 2 or 4, received " + arguments.length + ".";
+    }
+
+    var margin = {top: first, right: second, bottom: third_opt ? third_opt : first, left: forth_opt ? forth_opt : second},
+    width = 600 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+    return {
+        margin: margin,
+        width: width,
+        height: height
+    }
+}
+</script>
     

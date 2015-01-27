@@ -13,5 +13,5 @@ def home():
 def upload():
 	return render.upload()
 
-def results():
-	return render.results()
+def results(context):
+	return render.results(context)
