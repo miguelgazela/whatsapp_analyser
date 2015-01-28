@@ -2,6 +2,7 @@ import web
 import view
 from view import render
 from lib import analyser as anal
+from config import default_config as config
 import json
 
 web.config.debug = False
@@ -64,7 +65,7 @@ class upload:
 		word_hist = sorted(word_hist, key=lambda word: word['size'], reverse=True)
 
 
-		session.overview['word_hist'] = json.dumps(word_hist_xs[:150])
+		session.overview['word_hist'] = json.dumps(word_hist[:config['NUM_WORDS_HISTOGRAM']])
 		session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
 		session.overview['num_days'] = sup_results['days']['overview']['num_days']
 		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
