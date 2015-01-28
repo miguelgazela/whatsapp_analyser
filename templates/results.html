@@ -354,16 +354,19 @@ $def with (context)
     var colors = d3.scale.category20();
 
     var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
-
-    console.log(data);
+    var maxFrequency = data[0].size;
 
     d3.layout.cloud().size([1108, 580])
       .words(data)
       .padding(5)
       .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .fontSize(function (d) { return d.size; }) // TODO needs a better formula
+      .fontSize(function (d) { return calculateFontSize(d.size, maxFrequency); })
       .on("end", drawCloud)
       .start();
+
+    function calculateFontSize(frequency, max) {
+      return (frequency * 240) / max;
+    }
 
     function drawCloud(words) {
       d3.select("#wordCloudSvg").append("svg")
