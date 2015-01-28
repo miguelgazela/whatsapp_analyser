@@ -355,18 +355,20 @@ $def with (context)
 
     var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
 
-    d3.layout.cloud().size([1108, 500])
+    console.log(data);
+
+    d3.layout.cloud().size([1108, 580])
       .words(data)
       .padding(5)
       .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .fontSize(function (d) { return d.size; })
+      .fontSize(function (d) { return d.size; }) // TODO needs a better formula
       .on("end", drawCloud)
       .start();
 
     function drawCloud(words) {
       d3.select("#wordCloudSvg").append("svg")
         .attr("width", 1108)
-        .attr("height", 500)
+        .attr("height", 600)
         .append("g")
         .attr("transform", "translate(554,300)")
         .selectAll("text")

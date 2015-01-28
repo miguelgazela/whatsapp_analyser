@@ -59,8 +59,12 @@ class upload:
 				'num_messages': sup_results['days'][day]
 			})
 
-		session.overview['word_hist'] = json.dumps(anal.get_word_hist(sup_results['messages']))
+		# get word histogram and sort it
+		word_hist = anal.get_word_hist(sup_results['messages'])
+		word_hist = sorted(word_hist, key=lambda word: word['size'], reverse=True)
 
+
+		session.overview['word_hist'] = json.dumps(word_hist_xs[:150])
 		session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
 		session.overview['num_days'] = sup_results['days']['overview']['num_days']
 		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
