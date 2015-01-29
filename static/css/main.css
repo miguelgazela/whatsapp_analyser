@@ -86,7 +86,7 @@
 {
     path,
     line {
-        stroke: black;
+        stroke: #ccc;
         fill: none;
         stroke-width: 1px;
     }
@@ -117,6 +117,11 @@
   stroke-width: 2px;
 }
 
+
+
+.area {
+  fill: steelblue;
+}
 
 
 

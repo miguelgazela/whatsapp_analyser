@@ -104,6 +104,15 @@ $def with (context)
           <div id="wordCloudSvg"></div>
         </div>
       </div>
+      
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">What's the busiest time of the day?</h3>
+        </div>
+        <div class="panel-body">
+          <div id="stackedAreaSvg"></div>
+        </div>
+      </div>
 
     </div> <!-- /col-sm-12 -->
 
@@ -129,8 +138,9 @@ $def with (context)
   $$(document).ready(function() {
     buildBiggestSpammerGraph();
     buildBiggestSliceGraph();
-    buildDistributionOverTimeGraph()
-    buildWordCloud()
+    // buildDistributionOverTimeGraph();
+    // buildWordCloud();
+    buildAreaGraph();
 
     // setTimeout(buildDistributionOverTimeGraph(), 5000);
     // // setTimeout(buildCalendarVierGraph(), 10000);
@@ -139,8 +149,64 @@ $def with (context)
 
   var defaultConfig = {
     smallGraphHeight: 260,
-    smallGraphWidth: 500
+    smallGraphWidth: 500,
+    mediumGraphWidth: 660,
+    mediumGraphHeight: 360,
+    largeGraphWidth: 1138,
+    largeGraphHeight: 400
   }
+
+
+  function buildAreaGraph() {
+    var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 30, 40, 30, 40);
+
+    var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+    var color = getColorScale();
+
+    var x = d3.time.scale().range([0, conf.width]);
+    var y = d3.scale.linear().range([conf.height, 0]);
+
+    var xAxis = getSimpleAxis(x, "bottom");
+    var yAxis = getSimpleAxis(y, "left");
+
+    var area = d3.svg.area()
+      .x(function (d) { return x(d.date); })
+      .y0(conf.height)
+      .y1(function (d) { return y(d.num_messages); });
+
+    var svg = getSvgAddedTo("#stackedAreaSvg", conf);
+
+    var data = JSON.parse(document.getElementById('messagesByDay').innerHTML);
+
+    _.each(data, function (d) {
+      d.date = parseDate(d.date);
+    });
+
+    x.domain(d3.extent(data, function (d) { return d.date; }));
+    y.domain([0, d3.max(data, function (d) { return d.num_messages; })]);
+
+    svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area);
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + conf.height + ")")
+      .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("tranform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("# Messages");
+
+  };
 
 
   function buildBiggestSpammerGraph() {
@@ -270,7 +336,7 @@ $def with (context)
 
     var eventDropsChart = d3.chart.eventDrops()
       .margin({top: 70, left: 140, bottom: 20, right: 50})
-      .width(1138)
+      .width(defaultConfig.largeGraphWidth)
       .start(minDate)
       .end(maxDate)
       .eventHover(function(el){
@@ -390,6 +456,7 @@ $def with (context)
 
 
   function getColorScale() {
+    return d3.scale.category10();
     if($len(context.users) === 2) {
       // return d3.scale.ordinal().range(['#ea4b54', "#bdc3c7"]);
       return d3.scale.ordinal().range(['#3498db', "#ea4b54"])
