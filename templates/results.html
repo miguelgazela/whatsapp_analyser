@@ -107,7 +107,7 @@ $def with (context)
       
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">What's the busiest time of the day?</h3>
+          <h3 class="panel-title">What were the busiest days?</h3>
         </div>
         <div class="panel-body">
           <div id="stackedAreaSvg"></div>
@@ -151,7 +151,7 @@ $def with (context)
     smallGraphHeight: 260,
     smallGraphWidth: 500,
     mediumGraphWidth: 660,
-    mediumGraphHeight: 360,
+    mediumGraphHeight: 320,
     largeGraphWidth: 1138,
     largeGraphHeight: 400
   }
@@ -160,51 +160,92 @@ $def with (context)
   function buildAreaGraph() {
     var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 30, 40, 30, 40);
 
-    var parseDate = d3.time.format("%Y-%m-%d").parse;
+    var parseDate = d3.time.format("%Y-%m-%d").parse,
+      formatDate = d3.time.format("%Y");
 
     var color = getColorScale();
 
-    var x = d3.time.scale().range([0, conf.width]);
-    var y = d3.scale.linear().range([conf.height, 0]);
-
-    var xAxis = getSimpleAxis(x, "bottom");
-    var yAxis = getSimpleAxis(y, "left");
-
-    var area = d3.svg.area()
-      .x(function (d) { return x(d.date); })
-      .y0(conf.height)
-      .y1(function (d) { return y(d.num_messages); });
-
-    var svg = getSvgAddedTo("#stackedAreaSvg", conf);
-
     var data = JSON.parse(document.getElementById('messagesByDay').innerHTML);
-
     _.each(data, function (d) {
       d.date = parseDate(d.date);
     });
 
-    x.domain(d3.extent(data, function (d) { return d.date; }));
-    y.domain([0, d3.max(data, function (d) { return d.num_messages; })]);
+    var minDate = data[0].date;
+    var maxDate = data[data.length - 1].date;
 
-    svg.append("path")
-      .datum(data)
-      .attr("class", "area")
-      .attr("d", area);
+    var x = d3.time.scale()
+      .range([0, conf.width])
+      .domain(d3.extent(data, function (d) { return d.date; }));
 
-    svg.append("g")
+    var y = d3.scale.linear()
+      .range([conf.height, 0])
+      .domain([0, d3.max(data, function (d) { return d.num_messages; })]);
+
+    var xAxis = getSimpleAxis(x, "bottom")
+      // .tickSize(-conf.height, 0)
+      .tickPadding(6);
+
+    var yAxis = getSimpleAxis(y, "left")
+      // .tickSize(-conf.width)
+      .tickPadding(6);
+
+    var zoom = d3.behavior.zoom()
+      .x(x)
+      .on('zoom', zoomed);
+
+    var areaChart = d3.select("#stackedAreaSvg").append("svg")
+      .attr("width", conf.width + conf.margin.left + conf.margin.right)
+      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .call(zoom)
+      .append("g")
+      .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
+
+    var area = d3.svg.area()
+      // .interpolate("step-after")
+      .x(function (d) { return x(d.date); })
+      .y0(y(0))
+      .y1(function (d) { return y(d.num_messages); });
+
+    areaChart.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + conf.height + ")")
       .call(xAxis);
 
-    svg.append("g")
+    areaChart.append("g")
         .attr("class", "y axis")
         .call(yAxis)
       .append("text")
-        .attr("tranform", "rotate(-90)")
+        .attr("transform", "rotate(-90)")
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
+        .style("font-size", "10px")
         .text("# Messages");
+
+    var plotArea = areaChart.append('g')
+      .attr('clip-path', 'url(#plotAreaClip)');
+
+    plotArea.append('clipPath')
+      .attr('id', 'plotAreaClip')
+      .append('rect')
+      .attr({ width: conf.width, height: conf.height });
+
+    plotArea.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area);
+
+
+    function zoomed () {
+        // console.log(d3.event.translate);
+        // console.log(d3.event.scale);
+
+        areaChart.select(".x.axis").call(xAxis);
+        areaChart.select(".y.axis").call(yAxis);
+        areaChart.select('.area')
+          .attr("class", "area")
+          .attr("d", area);
+    }
 
   };
 
