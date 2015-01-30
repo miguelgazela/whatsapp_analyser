@@ -137,8 +137,18 @@
   fill: orange;
 }
 
+.filtered text {
+  fill: whitesmoke !important;
+}
 
+.filtered text.active {
+  fill: steelblue !important;
+}
 
+#wordCounter {
+  margin-bottom: 0;
+  line-height: 34px;
+}
 
 
 
