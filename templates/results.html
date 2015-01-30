@@ -171,13 +171,37 @@ $def with (context)
       
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">What were the busiest days?</h3>
+          <h3 class="panel-title">Which were the busiest days?</h3>
         </div>
         <div class="panel-body">
           <div id="stackedAreaSvg">
             <button id="stackedAreaResetBrush" class="btn btn-default">Reset</button>
           </div>
         </div>
+      </div>
+
+      <div class="row">
+
+        <div class="col-xs-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Most Active Day</h3>
+            </div>
+            <div class="panel-body" id="mostActiveDay">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xs-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Least Active Day</h3>
+            </div>
+            <div class="panel-body" id="leastActiveDay">
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div> <!-- /col-sm-12 -->
@@ -204,7 +228,7 @@ $def with (context)
   $$(document).ready(function() {
     buildBiggestSpammerGraph();
     buildBiggestSliceGraph();
-    // buildDistributionOverTimeGraph();
+    buildDistributionOverTimeGraph();
     buildWordCloud();
     buildAreaGraph();
 
@@ -232,10 +256,33 @@ $def with (context)
 
     var color = getColorScale();
 
+    var mostActiveDay = { date: null, num_messages: 0 },
+      leastActiveDay = { date: null, num_messages: Math.pow(2, 53)-1 };
+
     var data = JSON.parse(document.getElementById('messagesByDay').innerHTML);
     _.each(data, function (d) {
       d.date = parseDate(d.date);
+
+      if (d.num_messages > mostActiveDay.num_messages) {
+        mostActiveDay = d;
+      }
+
+      if (d.num_messages < leastActiveDay.num_messages && d.num_messages !== 0) {
+        leastActiveDay = d;
+      }
+
     });
+
+    console.log(mostActiveDay);
+
+    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+    // fill in section with most and least active days
+    $$('#mostActiveDay').html("<p>" + mostActiveDay.date.toLocaleDateString('en-GB', options) + "</p><p>" + mostActiveDay.num_messages + " messages</p>");
+
+    $$('#leastActiveDay').html("<p>" + leastActiveDay.date.toLocaleDateString('en-GB', options) + "</p><p>" + leastActiveDay.num_messages + " messages</p>");
+
+
 
     var minDate = data[0].date;
     var maxDate = data[data.length - 1].date;
@@ -586,6 +633,7 @@ $def with (context)
     var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
     var maxFrequency = data[0].size;
 
+    // fill tables with most and least popular words
     var tbodyPopular = $$('#mostPopularWords');
     var tbodyUnpopular = $$('#leastPopularWords');
 
@@ -620,15 +668,18 @@ $def with (context)
           .style("fill", function(d, i) { return colors(i); })
           .attr("text-anchor", "middle")
           .attr("transform", function(d) {
-            console.log("HERE");
             return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
           })
           .text(function(d) { return d.text; });
     }
 
+    // code for the search word function
+
     var tid = null;
 
     $$('#searchWord').keyup(function(e) {
+
+      // if user is still writing the word, prevent code run
       if (tid !== null) 
         clearTimeout(tid);
 

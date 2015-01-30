@@ -15,3 +15,6 @@ def upload():
 
 def results(context):
 	return render.results(context)
+
+def words(context):
+	return render.words(context)

@@ -12,6 +12,7 @@ urls = (
 	'/', 'index',
 	'/upload', 'upload',
 	'/results', 'results',
+	'/results/words', 'words'
 )
 
 render = web.template.render('templates/')
@@ -71,6 +72,8 @@ class upload:
 		session.overview['num_days'] = sup_results['days']['overview']['num_days']
 		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
 
+		session['complete_word_histogram'] = json.dumps(word_hist)
+
 		session.messages_by_user = json.dumps(session.messages_by_user)
 		raise web.seeother('/results')
 
@@ -79,6 +82,12 @@ class results:
 
 	def GET(self):
 		return render.base(view.results(session))
+
+
+class words:
+
+	def GET(self):
+		return render.base(view.words(session))
 
 
 class MyApplication(web.application):
