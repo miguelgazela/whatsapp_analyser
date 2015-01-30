@@ -104,6 +104,53 @@ $def with (context)
           <div id="wordCloudSvg"></div>
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-xs-6">
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Most Popular Words</h3>
+            </div>
+            <div class="panel-body">
+              <table class="table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Pos.</th>
+                    <th>Word</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="mostPopularWords"></tbody>
+              </table>
+
+            </div>
+          </div>
+
+        </div>
+
+        <div class="col-xs-6">
+          
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Least Popular Words</h3>
+            </div>
+            <div class="panel-body">
+              <table class="table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Pos.</th>
+                    <th>Word</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="leastPopularWords"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
       
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -140,8 +187,8 @@ $def with (context)
   $$(document).ready(function() {
     buildBiggestSpammerGraph();
     buildBiggestSliceGraph();
-    // buildDistributionOverTimeGraph();
-    // buildWordCloud();
+    buildDistributionOverTimeGraph();
+    buildWordCloud();
     buildAreaGraph();
 
     // setTimeout(buildDistributionOverTimeGraph(), 5000);
@@ -522,6 +569,15 @@ $def with (context)
     var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
     var maxFrequency = data[0].size;
 
+    var tbodyPopular = $$('#mostPopularWords');
+    var tbodyUnpopular = $$('#leastPopularWords');
+
+    for(var i = 0; i < 10; i++) {
+      console.log(data[i]);
+      tbodyPopular.append("<tr><td>" + (i + 1) + "</td><td>" + data[i].text + "</td><td>" + data[i].size + "</td>");
+      tbodyUnpopular.append("<tr><td>" + (i + 1) + "</td><td>" + data[data.length - 1 - i].text + "</td><td>" + data[data.length - 1 - i].size + "</td>");
+    }
+
     d3.layout.cloud().size([1108, 580])
       .words(data)
       .padding(5)
@@ -552,6 +608,7 @@ $def with (context)
           })
           .text(function(d) { return d.text; });
     }
+
   };
 
 
