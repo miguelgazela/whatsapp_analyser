@@ -158,7 +158,8 @@ $def with (context)
 
 
   function buildAreaGraph() {
-    var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 30, 40, 30, 40);
+    var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 80, 40);
+    var conf2 = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.smallGraphHeight / 3, 30, 40, 20, 40)
 
     var parseDate = d3.time.format("%Y-%m-%d").parse,
       formatDate = d3.time.format("%Y");
@@ -181,8 +182,19 @@ $def with (context)
       .range([conf.height, 0])
       .domain([0, d3.max(data, function (d) { return d.num_messages; })]);
 
+    var x2 = d3.time.scale()
+      .range([0, conf.width])
+      .domain(x.domain());
+
+    var y2 = d3.scale.linear()
+      .range([conf2.height, 0])
+      .domain(y.domain());
+
     var xAxis = getSimpleAxis(x, "bottom")
       // .tickSize(-conf.height, 0)
+      .tickPadding(6);
+
+    var xAxis2 = getSimpleAxis(x2, "bottom")
       .tickPadding(6);
 
     var yAxis = getSimpleAxis(y, "left")
@@ -193,25 +205,41 @@ $def with (context)
       .x(x)
       .on('zoom', zoomed);
 
-    var areaChart = d3.select("#stackedAreaSvg").append("svg")
-      .attr("width", conf.width + conf.margin.left + conf.margin.right)
-      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
-      .call(zoom)
-      .append("g")
-      .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
+    var brush = d3.svg.brush()
+      .x(x2)
+      .on("brush", brush);
 
     var area = d3.svg.area()
-      // .interpolate("step-after")
+      .interpolate("step-after")  // can also be linear or step-after
       .x(function (d) { return x(d.date); })
-      .y0(y(0))
+      .y0(conf.height)  // or y(0)
       .y1(function (d) { return y(d.num_messages); });
 
-    areaChart.append("g")
+    var area2 = d3.svg.area()
+      .interpolate("step-after")  // can also be linear or step-after
+      .x(function (d) { return x2(d.date); })
+      .y0(conf2.height)
+      .y1(function (d) { return y2(d.num_messages); });
+
+    var svg = d3.select("#stackedAreaSvg").append("svg")
+      .attr("width", conf.width + conf.margin.left + conf.margin.right)
+      .attr("height", conf.height + conf.margin.top  + conf2.height + conf.margin.bottom)
+
+    var focus = svg.call(zoom).append("g")
+      .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
+
+    var context = svg.append("g")
+      .attr("transform", "translate(" + (conf2.margin.left + 20) + "," + (conf.height + 60) + ")");
+
+
+    // focus -> areaChart
+
+    focus.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + conf.height + ")")
       .call(xAxis);
 
-    areaChart.append("g")
+    focus.append("g")
         .attr("class", "y axis")
         .call(yAxis)
       .append("text")
@@ -222,7 +250,7 @@ $def with (context)
         .style("font-size", "10px")
         .text("# Messages");
 
-    var plotArea = areaChart.append('g')
+    var plotArea = focus.append('g')
       .attr('clip-path', 'url(#plotAreaClip)');
 
     plotArea.append('clipPath')
@@ -235,17 +263,41 @@ $def with (context)
       .attr("class", "area")
       .attr("d", area);
 
+    context.append("path")
+      .datum(data)
+      .attr("class", "overview-area")
+      .attr("d", area2);
+
+    context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0, " + conf2.height + ")")
+      .call(xAxis2);
+
+    context.append("g")
+        .attr("class", "x brush")
+        .call(brush)
+      .selectAll("rect")
+        .attr("y", -6)
+        .attr("height", conf.height + 7);
+
 
     function zoomed () {
         // console.log(d3.event.translate);
         // console.log(d3.event.scale);
 
-        areaChart.select(".x.axis").call(xAxis);
-        areaChart.select(".y.axis").call(yAxis);
-        areaChart.select('.area')
-          .attr("class", "area")
-          .attr("d", area);
+        // focus.select(".x.axis").call(xAxis);
+        // focus.select(".y.axis").call(yAxis);
+        // focus.select('.area')
+        //   .attr("class", "area")
+        //   .attr("d", area);
     }
+
+    function brush () {
+      x.domain(brush.empty() ? x2.domain() : brush.extent());
+      focus.select(".area").attr("class", "area").attr("d", area);
+      focus.select(".x.axis").call(xAxis);
+    // circlegroup.selectAll(".dot").attr("cx",function(d){ return x(format.parse(d3.keys(d)[0]));}).attr("cy", function(d){ return y(d3.values(d)[0]);});
+    };
 
   };
 
