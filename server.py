@@ -4,6 +4,7 @@ from view import render
 from lib import analyser as anal
 from config import default_config as config
 import json
+import os
 
 web.config.debug = False
 
@@ -80,8 +81,16 @@ class results:
 		return render.base(view.results(session))
 
 
+class MyApplication(web.application):
+
+	def run (self, port=8080, *middleware):
+		func = self.wsgifunc(*middleware)
+		return web.httpserver.runsimple(func, ('0.0.0.0', port))
+
+
 if __name__ == "__main__":
-	app = web.application(urls, globals())
+	app = MyApplication(urls, globals())
 	app.internalerror = web.debugerror
 	session = web.session.Session(app, web.session.DiskStore('sessions'))
-	app.run()
+	port = int(os.environ.get('PORT', 8080))
+	app.run(port=port)

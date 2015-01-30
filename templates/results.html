@@ -110,7 +110,9 @@ $def with (context)
           <h3 class="panel-title">What were the busiest days?</h3>
         </div>
         <div class="panel-body">
-          <div id="stackedAreaSvg"></div>
+          <div id="stackedAreaSvg">
+            <button id="stackedAreaResetBrush" class="btn btn-default">Reset</button>
+          </div>
         </div>
       </div>
 
@@ -231,9 +233,6 @@ $def with (context)
     var context = svg.append("g")
       .attr("transform", "translate(" + (conf2.margin.left + 20) + "," + (conf.height + 60) + ")");
 
-
-    // focus -> areaChart
-
     focus.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + conf.height + ")")
@@ -298,6 +297,14 @@ $def with (context)
       focus.select(".x.axis").call(xAxis);
     // circlegroup.selectAll(".dot").attr("cx",function(d){ return x(format.parse(d3.keys(d)[0]));}).attr("cy", function(d){ return y(d3.values(d)[0]);});
     };
+
+    document.getElementById("stackedAreaResetBrush").addEventListener("click", function () {
+      console.log("DOING THIS");
+
+      brush
+        .clear()
+        .event(d3.select(".brush"));
+    });    
 
   };
 
