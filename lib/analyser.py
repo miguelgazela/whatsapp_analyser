@@ -6,7 +6,7 @@ import re
 import string
 import os
 from collections import OrderedDict
-# from xlwt import Workbook
+import string
 import unicodedata
 
 # import matplotlib.pyplot as plt
@@ -131,7 +131,9 @@ def get_word_hist(messages):
             words = map(string.lower, words)
 
             for word in words:
-                if not word in common_words and not word in ignore:
+                word = word.translate(string.maketrans("",""), string.punctuation.replace("-", ""))
+
+                if not word in common_words and not word in ignore and word != "":
                     word_hist[word] = word_hist.get(word, 0) + 1
 
     word_res = []

@@ -75,6 +75,7 @@ class upload:
 		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
 
 		session['complete_word_histogram'] = json.dumps(word_hist)
+		session['complete_smile_histogram'] = json.dumps(smile_hist)
 
 		session.messages_by_user = json.dumps(session.messages_by_user)
 		raise web.seeother('/results')

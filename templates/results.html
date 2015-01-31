@@ -184,6 +184,7 @@ $def with (context)
                 </thead>
                 <tbody id="mostPopularEmoticons"></tbody>
               </table>
+              <p class="text-center"><a href="/results/words#emoticons">All Emoticons</a></p>
             </div>
           </div>
 
@@ -307,16 +308,11 @@ $def with (context)
 
     });
 
-    console.log(mostActiveDay);
-
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
     // fill in section with most and least active days
     $$('#mostActiveDay').html("<p>" + mostActiveDay.date.toLocaleDateString('en-GB', options) + "</p><p>" + mostActiveDay.num_messages + " messages</p>");
-
     $$('#leastActiveDay').html("<p>" + leastActiveDay.date.toLocaleDateString('en-GB', options) + "</p><p>" + leastActiveDay.num_messages + " messages</p>");
-
-
 
     var minDate = data[0].date;
     var maxDate = data[data.length - 1].date;
