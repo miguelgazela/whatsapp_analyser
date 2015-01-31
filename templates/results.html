@@ -22,6 +22,12 @@ $def with (context)
 </nav>
 
 <div class="container main-content">
+
+  <ol class="breadcrumb">
+    <li><a href="/upload">Analyse</a></li>
+    <li class="active">Results</li>
+  </ol>
+
   <div class="row">
 
     <div class="col-xs-12">
@@ -101,23 +107,15 @@ $def with (context)
           <h3 class="panel-title">Word Cloud</h3>
         </div>
         <div class="panel-body">
-          <div id="wordCloudSvg"></div>
-        </div>
-      </div>
-
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Search For Word</h3>
-        </div>
-        <div class="panel-body">
           <div class="row">
-            <div class="col-xs-6">
-              <input type="text" class="form-control" placeholder="Type any word here..." id="searchWord">
-            </div>
-            <div class="col-xs-6">
+            <div class="col-xs-4"></div>
+            <div class="col-xs-4" id="wordSearchContainer">
+              <input type="text" class="form-control input-sm" placeholder="search for a specific word here" id="searchWord">
               <p class="text-center" id="wordCounter"></p>
             </div>
+            <div class="col-xs-4"></div>
           </div>
+          <div id="wordCloudSvg"></div>
         </div>
       </div>
 
@@ -139,6 +137,7 @@ $def with (context)
                 </thead>
                 <tbody id="mostPopularWords"></tbody>
               </table>
+              <p class="text-center"><a href="/results/words">All Words</a></p>
 
             </div>
           </div>
@@ -162,6 +161,7 @@ $def with (context)
                 </thead>
                 <tbody id="leastPopularWords"></tbody>
               </table>
+              <p class="text-center"><a href="/results/words">All Words</a></p>
             </div>
           </div>
 
@@ -228,7 +228,7 @@ $def with (context)
   $$(document).ready(function() {
     buildBiggestSpammerGraph();
     buildBiggestSliceGraph();
-    buildDistributionOverTimeGraph();
+    // buildDistributionOverTimeGraph();
     buildWordCloud();
     buildAreaGraph();
 
@@ -644,7 +644,7 @@ $def with (context)
 
     d3.layout.cloud().size([1108, 580])
       .words(data)
-      .padding(5)
+      .padding(6)
       .rotate(function() { return ~~(Math.random() * 2) * 90; })
       .fontSize(function (d) { return calculateFontSize(d.size, maxFrequency); })
       .on("end", drawCloud)
@@ -657,9 +657,9 @@ $def with (context)
     function drawCloud(words) {
       d3.select("#wordCloudSvg").append("svg")
         .attr("width", 1108)
-        .attr("height", 600)
+        .attr("height", 630)
         .append("g")
-        .attr("transform", "translate(554,300)")
+        .attr("transform", "translate(554, 340)")
         .selectAll("text")
           .data(words)
         .enter().append("text")

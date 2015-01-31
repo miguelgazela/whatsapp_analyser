@@ -22,38 +22,50 @@ $def with (context)
 </nav>
 
 <div class="container main-content">
+
+  <ol class="breadcrumb">
+    <li><a href="/upload">Analyse</a></li>
+    <li><a href="/results">Results</a></li>
+    <li class="active">Words</li>
+  </ol>
+
+  <hr>
+
   <div class="row">
 
-    <div class="col-xs-4">
-      <div class="panel panel-default">
+    <div class="col-xs-6">
+      <div class="panel panel-default panel-stats">
         <div class="panel-heading">
           <h3 class="panel-title">How Many Words?</h3>
         </div>
-        <div class="panel-body" id="wordCounter">
-          <p></p>
+        <div class="panel-body" id="wordCountStat">
+          
         </div>
       </div>
     </div>
 
-    <div class="col-xs-4">
-      <div class="panel panel-default">
+    <div class="col-xs-6">
+      <div class="panel panel-default panel-stats">
         <div class="panel-heading">
           <h3 class="panel-title">Used how many times?</h3>
         </div>
-        <div class="panel-body" id="wordCounter">
-          <p></p>
+        <div class="panel-body" id="wordTimesUsedStat">
+          
         </div>
       </div>
     </div>
-
+  
+    <div class="col-xs-4"></div>
+  
     <div class="col-xs-4">
       
+          <input type="text" class="form-control" placeholder="filter words..." id="filterWords">
+        
     </div>
 
+    <div class="col-xs-4"></div>
+
     <div class="col-xs-12">
-      <div class="page-header">
-        <h1>Words</h1>
-      </div>
 
       <table class="table table-striped table-condensed">
         <thead>
@@ -85,6 +97,30 @@ $def with (context)
 <script type="text/javascript">
   $$(document).ready(function() {
     populateTable();
+
+    var tid = null;
+
+    document.getElementById('filterWords').addEventListener('keyup', function (e) {
+
+      if (tid !== null)
+        clearTimeout(tid);
+
+      var query = e.target.value;
+
+      tid = setTimeout(function () {
+        _.each($$('.wordStats'), function (row) {
+          var row = $$(row);
+
+          if (row.children('td')[1].innerHTML.indexOf(query) === -1) {
+            row.hide();
+          } else {
+            row.show();
+          }          
+        });
+      }, 200);
+      
+    });
+
   });
 
 
@@ -92,10 +128,19 @@ $def with (context)
 
     var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
     var table = $$('#words');
+    var wordCounter = document.getElementById('wordCountStat');
+    var wordTimesUsed = document.getElementById('wordTimesUsedStat')
+
+    wordCounter.innerHTML = "<p>This conversation contains <strong>" + data.length + "</strong> distinct words.</p>"
+
+    var total = 0;
 
     for(var i = 0; i < data.length; i++) {
-      table.append('<tr><td>' + (i + 1) +'</td><td>' + data[i].text +'</td><td>' + data[i].size +'</td></tr>');
+      table.append('<tr class="wordStats"><td>' + (i + 1) +'</td><td>' + data[i].text +'</td><td>' + data[i].size +'</td></tr>');
+      total += data[i].size;
     }
+
+    wordTimesUsed.innerHTML = "<p>Together they've been used <strong>" + total + "</strong> times.</p>"
       
 
   };
