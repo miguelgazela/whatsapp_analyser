@@ -1,3 +1,4 @@
 default_config = {
-	'NUM_WORDS_HISTOGRAM': 150
+	'NUM_WORDS_HISTOGRAM': 150,
+	'NUM_SMILES_HISTOGRAM': 10,
 }

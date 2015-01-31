@@ -94,7 +94,9 @@ def superficial_analysis(messages):
 
 
 def get_word_hist(messages):
-    hist = {}
+    word_hist = {}
+    smile_hist = {}
+
     common_words = [
         'que', 'that', 'o', 'the', 'não', 'no', 'not', 'nao', 'de', 'of',
         'é', 'e', 'is', 'it', 'eu', 'tu', 'ele', 'ela', 'nós', 'nos', 'eles',
@@ -106,22 +108,41 @@ def get_word_hist(messages):
         'much', 'very', 'she', 'as', 'seu', 'vamos', 'come', 'vai', 'go', 'sua', 'its',
         'estou', 'am', 'foi', 'was', 'tudo', 'everything', 'minha',
     ]
+    smiles = [
+        ':-)', ':)', ':D', ':o)', ':]', ':3', ':c)', ':>', '=]', '8)', '=)', ':}', ':^)',
+        ':-D', '8-D', '8D', 'x-D', 'xD', 'X-D', 'XD', '=-D', '=D', '=-3', '=3', 'B^D',
+        '>:[', ':-(', ':(', ':-c', ':c', ':-<', ':<', ':-[', ':[', ':{',
+        ';-)', ';)', '*-)', '*)', ';-]', ';]', ';D', ';^)', ':-,',
+        '>:P', ':-P', ':P', 'X-P', 'x-p', 'xp', 'XP', ':-p', ':p', '=p',
+        '>:\\', '>:/', ':-/', ':-.', ':/', ':\\', '=/', '=\\', ':L', '=L', ':S', '>.<',
+        ':|', ':-|', '=|', ':$', '=$'
+    ]
     ignore = ['<image', 'omitted>']
 
     for user in messages.keys():
         for msg in messages[user]:
             words = msg.get_content()
+
+            for word in words:
+                if word in smiles:
+                    smile_hist[word] = smile_hist.get(word, 0) + 1
+                    words.remove(word)
+
             words = map(string.lower, words)
 
             for word in words:
                 if not word in common_words and not word in ignore:
-                    hist[word] = hist.get(word, 0) + 1
+                    word_hist[word] = word_hist.get(word, 0) + 1
 
-    res = []
-    for key in hist.keys():
-        res.append({'text': key, 'size': hist[key]})
+    word_res = []
+    for key in word_hist.keys():
+        word_res.append({'text': key, 'size': word_hist[key]})
 
-    return res
+    smile_res = []
+    for key in smile_hist.keys():
+        smile_res.append({'text': key, 'size': smile_hist[key]})
+
+    return {'words': word_res, 'smiles': smile_res}
 
 
 

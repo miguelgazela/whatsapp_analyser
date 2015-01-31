@@ -63,11 +63,13 @@ class upload:
 			})
 
 		# get word histogram and sort it
-		word_hist = anal.get_word_hist(sup_results['messages'])
-		word_hist = sorted(word_hist, key=lambda word: word['size'], reverse=True)
+		hist = anal.get_word_hist(sup_results['messages'])
 
+		word_hist = sorted(hist['words'], key=lambda word: word['size'], reverse=True)
+		smile_hist = sorted(hist['smiles'], key=lambda word: word['size'], reverse=True)
 
 		session.overview['word_hist'] = json.dumps(word_hist[:config['NUM_WORDS_HISTOGRAM']])
+		session.overview['smile_hist'] = json.dumps(smile_hist[:config['NUM_SMILES_HISTOGRAM']])
 		session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
 		session.overview['num_days'] = sup_results['days']['overview']['num_days']
 		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])

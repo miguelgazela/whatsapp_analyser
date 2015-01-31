@@ -120,7 +120,7 @@ $def with (context)
       </div>
 
       <div class="row">
-        <div class="col-xs-6">
+        <div class="col-xs-4">
 
           <div class="panel panel-default">
             <div class="panel-heading">
@@ -144,7 +144,7 @@ $def with (context)
 
         </div>
 
-        <div class="col-xs-6">
+        <div class="col-xs-4">
           
           <div class="panel panel-default">
             <div class="panel-heading">
@@ -162,6 +162,28 @@ $def with (context)
                 <tbody id="leastPopularWords"></tbody>
               </table>
               <p class="text-center"><a href="/results/words">All Words</a></p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="col-xs-4">
+          
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Most Popular Emoticons</h3>
+            </div>
+            <div class="panel-body">
+              <table class="table table-striped table-condensed">
+                <thead>
+                  <tr>
+                    <th>Pos.</th>
+                    <th>Emoticon</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="mostPopularEmoticons"></tbody>
+              </table>
             </div>
           </div>
 
@@ -223,6 +245,7 @@ $def with (context)
 <div class="hidden" id="biggestSpammerData">$context.messages_by_user</div>
 <div class="hidden" id="messagesByDay">$context.overview['days']</div>
 <div class="hidden" id="wordHistogram">$context.overview['word_hist']</div>
+<div class="hidden" id="smileHistogram">$context.overview['smile_hist']</div>
 
 <script type="text/javascript">
   $$(document).ready(function() {
@@ -231,6 +254,7 @@ $def with (context)
     // buildDistributionOverTimeGraph();
     buildWordCloud();
     buildAreaGraph();
+    populateEmoticonTable();
 
     // setTimeout(buildDistributionOverTimeGraph(), 5000);
     // // setTimeout(buildCalendarVierGraph(), 10000);
@@ -245,6 +269,16 @@ $def with (context)
     largeGraphWidth: 1138,
     largeGraphHeight: 400
   }
+
+
+  function populateEmoticonTable() {
+    var tbodyEmoticon = $$('#mostPopularEmoticons');
+    var data = JSON.parse(document.getElementById('smileHistogram').innerHTML);
+
+    for(var i = 0; i < 10; i++) {
+      tbodyEmoticon.append("<tr><td>" + (i + 1) + "</td><td>" + data[i].text + "</td><td>" + data[i].size + "</td></tr>")
+    }
+  };
 
 
   function buildAreaGraph() {
