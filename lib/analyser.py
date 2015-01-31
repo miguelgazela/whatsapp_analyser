@@ -117,7 +117,7 @@ def get_word_hist(messages):
         '>:\\', '>:/', ':-/', ':-.', ':/', ':\\', '=/', '=\\', ':L', '=L', ':S', '>.<',
         ':|', ':-|', '=|', ':$', '=$'
     ]
-    ignore = ['<image', 'omitted>']
+    ignore = ['image', 'omitted']
 
     for user in messages.keys():
         for msg in messages[user]:
