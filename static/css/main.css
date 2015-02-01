@@ -103,7 +103,17 @@
 }
 
 
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1px;
+}
 
+.dot {
+  fill: white;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
 
 
 .day {
@@ -120,7 +130,7 @@
 
 
 .area {
-  fill: steelblue;
+  fill: lightsteelblue;
 }
 
 .overview-area {
@@ -161,3 +171,23 @@
   font-weight: 700;
   font-size: 20px;
 }
+
+.panel-stats .secondary-stat {
+  text-align: center;
+  font-size: 16px;
+  color: #999;
+}
+
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.dotFocus circle {
+  fill: none;
+  stroke: steelblue;
+}
+
+
+

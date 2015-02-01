@@ -62,7 +62,14 @@ def superficial_analysis(messages):
             msg_o = Message(name, msg_timestamp, msg)
 
             # add the day as key and increment the number of messages of that day
-            days['overview']['days'][msg_timestamp.isoformat()[:10]] = days['overview']['days'].get(msg_timestamp.isoformat()[:10], 0) + 1
+            key = msg_timestamp.isoformat()[:10]
+            if days['overview']['days'].has_key(key):
+                days['overview']['days'][key]['size'] += 1
+                days['overview']['days'][key]['users'][name] = days['overview']['days'][key]['users'].get(name, 0) + 1
+            else:
+                days['overview']['days'][key] = {'size': 1, 'users': { name: 1 } }
+
+            # days['overview']['days'][msg_timestamp.isoformat()[:10]] = days['overview']['days'].get(msg_timestamp.isoformat()[:10], 0) + 1
 
             # add message to the user
             if messages_separated.has_key(name):
@@ -84,7 +91,11 @@ def superficial_analysis(messages):
     
     days_a = []
     for date in days['overview']['days'].keys():
-        days_a.append({'date': date, 'num_messages': days['overview']['days'][date]})
+        user_messages = {}
+        for user in days['overview']['days'][date]['users'].keys():
+            user_messages[user] = days['overview']['days'][date]['users'][user]
+
+        days_a.append({'date': date, 'num_messages': days['overview']['days'][date]['size'], 'mbu': user_messages })   # mbu = message by user
 
     days_a = sorted(days_a, key=lambda date: date['date'])
 

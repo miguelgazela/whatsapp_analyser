@@ -52,15 +52,15 @@ class upload:
 				'num_messages': len(sup_results['messages'][user])
 			})
 
-		# built information about the days where messages where exchanged
+		# built information about the days where messages were exchanged
 		session.overview = {}
 		session.overview['days'] = []
 
-		for day in sup_results['days'].keys():
-			session.overview['days'].append({
-				'date': day,
-				'num_messages': sup_results['days'][day]
-			})
+		# for day in sup_results['days'].keys():
+		# 	session.overview['days'].append({
+		# 		'date': day,
+		# 		'num_messages': sup_results['days'][day]
+		# })
 
 		# get word histogram and sort it
 		hist = anal.get_word_hist(sup_results['messages'])
