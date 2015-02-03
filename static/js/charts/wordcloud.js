@@ -3,11 +3,11 @@ function buildWordCloud() {
   var data = rawData.wordHistogram,  
     maxFrequency = data[0].size;
 
-  d3.layout.cloud().size([defaultConf.largeGraphWidth, defaultConf.wordCloudHeight])
+  d3.layout.cloud().size([defaultConfig.largeGraphWidth, defaultConfig.wordCloudHeight])
     .words(data)
     .padding(6)
     .rotate(function() { return ~~(Math.random() * 2) * 90; })
-    .fontSize(function (d) { return calculateFontSize(d.size, maxFrequency); })
+    .fontSize(function (d) { return calculateFontSizeForWord(d.size, maxFrequency); })
     .on("end", drawWordCloud)
     .start();
 
@@ -76,10 +76,10 @@ function drawWordCloud (words) {
   var colors = d3.scale.category20();
 
   d3.select("#wordCloudSvg").append("svg")
-    .attr("width", defaultConf.largeGraphWidth)
+    .attr("width", defaultConfig.largeGraphWidth)
     .attr("height", 630)
     .append("g")
-    .attr("transform", "translate(" + (defaultConf.largeGraphWidth / 2) +", 340)")
+    .attr("transform", "translate(" + (defaultConfig.largeGraphWidth / 2) +", 340)")
     .selectAll("text")
       .data(words)
     .enter().append("text")
@@ -95,5 +95,5 @@ function drawWordCloud (words) {
 
 
 function calculateFontSizeForWord (frequency, maxFrequency) {
-  return (frequency * defaultConf.wordCloudMaxFontSize) / maxFrequency;
+  return (frequency * defaultConfig.wordCloudMaxFontSize) / maxFrequency;
 };
