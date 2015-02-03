@@ -13,6 +13,9 @@ function buildDailyDistributionAreaChart() {
     var data = rawData.messagesByDay;
     var lastDate = null;
 
+    var totalNumMessages = 0;
+    var numberDays = data.length;
+
     // the following code adds missing days with 0 messages sent
 
     for(var i = 0; i < data.length; ) {
@@ -35,6 +38,8 @@ function buildDailyDistributionAreaChart() {
 
       lastDate = currentDate;
 
+      totalNumMessages += data[i].num_messages;
+
       // calculate the most and least active days
 
       if (data[i].num_messages > mostActiveDay.num_messages) {
@@ -46,6 +51,8 @@ function buildDailyDistributionAreaChart() {
 
       i += daysDiff;  // due to the adition of new elements
     }
+
+    console.log(Math.round(totalNumMessages / numberDays));
 
     // fill in section with most and least active days
     $('#mostActiveDay').html("<p class='main-stat'>" + mostActiveDay.date.format("dddd, MMMM Do YYYY") + "</p><p class='secondary-stat'>" + mostActiveDay.num_messages + " messages</p>");
@@ -195,7 +202,7 @@ function buildDailyDistributionAreaChart() {
     $(container).mousemove(function(event) {
       handleMouseOverGraph(event);
     });
-    
+
   
     function handleMouseOverGraph (event) {
 
@@ -285,10 +292,10 @@ function buildDailyDistributionAreaChart() {
       focus.select(".x.axis").call(xAxis);
     };
 
-    document.getElementById("stackedAreaResetBrush").addEventListener("click", function () {
-      brush
-        .clear()
-        .event(d3.select(".brush"));
-    });    
+    // document.getElementById("stackedAreaResetBrush").addEventListener("click", function () {
+    //   brush
+    //     .clear()
+    //     .event(d3.select(".brush"));
+    // });    
 
   };

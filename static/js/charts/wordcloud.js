@@ -61,7 +61,7 @@ function buildWordCloud() {
       var words = $('#wordCloudSvg text');
 
       for(var j = 0; j < words.length; j++) {
-        var word = $$(words[j]);
+        var word = $(words[j]);
         word.attr("class", "");
       }
 
