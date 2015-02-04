@@ -2,7 +2,10 @@ var messageByHourLineXScale,
   messageByHourLineYScale,
   messageByHourLineXAxis,
   messageByHourLineYAxis,
-  valueLine;
+  valueLine,
+  messageByHourLineOldData,
+  oldMaxNumMessages;
+
 
 function buildMessageByHourLine() {
   var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 30, 40),
@@ -51,6 +54,8 @@ function buildMessageByHourLine() {
   var maxNumMessages = _.max(data_a, function (d) { return d.count; }).count;
 
   data_a.sort(compareDates);
+  messageByHourLineOldData = data_a;
+  oldMaxNumMessages = maxNumMessages;
 
   messageByHourLineXScale = d3.time.scale()
     .rangeRound([0, conf.width])
@@ -70,6 +75,10 @@ function buildMessageByHourLine() {
   var scatterplotChart = getSvgAddedTo("#lineplotMessageByHour", conf);
 
   valueLine = d3.svg.line()
+    .x(function (d) { return messageByHourLineXScale(d.date); })
+    .y(function (d) { return messageByHourLineYScale(d.count); });
+
+  valueLine2 = d3.svg.line()
     .x(function (d) { return messageByHourLineXScale(d.date); })
     .y(function (d) { return messageByHourLineYScale(d.count); });
 
@@ -99,6 +108,9 @@ function buildMessageByHourLine() {
       .attr("class", "messageByHour line")
       .attr("d", valueLine(data_a));
 
+    scatterplotChart.append("path")
+      .attr("class", "messageByHour oldline");
+
     $('#dateSlider').dateRangeSlider({
       bounds: {
         min: minDate,
@@ -126,7 +138,7 @@ function buildMessageByHourLine() {
       console.log(min_date);
       console.log(max_date);
 
-      updateMessageByHourLineData(min_date, max_date);
+      updateMessageByHourLineData(min_date, max_date, [0,1,2,3,4,5,6]);
 
     });
 };
@@ -200,16 +212,22 @@ function updateMessageByHourLineData (minDate, maxDate, selectedDays) {
   });
 
   var maxNumMessages = _.max(data_a, function (d) { return d.count; }).count;
-
-  messageByHourLineYScale.domain([0, maxNumMessages]);
+  messageByHourLineYScale.domain([0, Math.max(maxNumMessages, oldMaxNumMessages)]);
+  oldMaxNumMessages = maxNumMessages;
 
   data_a.sort(compareDates);
 
   var scatterplotChart = d3.select('#lineplotMessageByHour').transition();
 
+  scatterplotChart.select('.messageByHour.oldline')
+    .duration(750)
+    .attr("d", valueLine(messageByHourLineOldData));
+
   scatterplotChart.select('.messageByHour.line')
     .duration(750)
     .attr("d", valueLine(data_a));
+
+  messageByHourLineOldData = data_a;
 
   scatterplotChart.select(".messageByHour.y.axis").duration(750).call(messageByHourLineYAxis);
 }

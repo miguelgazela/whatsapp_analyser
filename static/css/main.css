@@ -204,10 +204,16 @@
   shape-rendering: crispEdges;
 }
 
-.messageByHour.line {
+.messageByHour.line,
+.messageByHour.oldline {
   stroke: steelblue;
   stroke-width: 1;
   fill: none;
+}
+
+.messageByHour.oldline {
+  stroke: grey;
+  stroke-opacity: 0.3;
 }
 
 .messageByHour.panel-footer {
