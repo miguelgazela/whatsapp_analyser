@@ -4,8 +4,12 @@ var defaultConfig = {
   mediumGraphWidth: 660,
   mediumGraphHeight: 320,
   largeGraphWidth: 1108,
-  largeGraphHeight: 500
+  largeGraphHeight: 500,
+
+  wordCloudHeight: 580,
+  wordCloudMaxFontSize: 220
 };
+
 
 function getSvgAddedTo(id, conf) {
   return d3.select(id).append("svg")
@@ -15,11 +19,13 @@ function getSvgAddedTo(id, conf) {
     .attr("transform", "translate(" + (conf.margin.left + 20) + "," + conf.margin.top + ")");
 };
 
+
 function getSimpleAxis(scale, orientation) {
   return d3.svg.axis()
     .scale(scale)
     .orient(orientation);
 };
+
 
 function getSvgConf(w, h, vertical, horizontal, bottom_opt, left_opt) {
 
