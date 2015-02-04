@@ -197,15 +197,17 @@ $def with (context)
           <h3 class="panel-title">Which were the busiest days?</h3>
         </div>
         <div class="panel-body">
-          <div id="stackedAreaSvg">
-            <button id="stackedAreaResetBrush" class="btn btn-default">Reset</button>
-          </div>
+          <!-- <button id="dailyDistResetBrush" class="btn btn-default">Reset</button> -->
+          <p class="main-stat" id="dailyDistMainStat"></p>
+          <p class="secondary-stat" id="dailyDistSecondaryStat"></p>
+          <span class="label label-default" id="areaNumMessages"></span>
+          <div id="dailyDistAreaSvg"></div>
         </div>
       </div>
 
       <div class="row">
 
-        <div class="col-xs-6">
+        <div class="col-xs-4">
           <div class="panel panel-default panel-stats">
             <div class="panel-heading">
               <h3 class="panel-title">Most Active Day</h3>
@@ -215,7 +217,17 @@ $def with (context)
           </div>
         </div>
 
-        <div class="col-xs-6">
+        <div class="col-xs-4">
+          <div class="panel panel-default panel-stats">
+            <div class="panel-heading">
+              <h3 class="panel-title">Average Number Messages per Day</h3>
+            </div>
+            <div class="panel-body" id="averageNumMessagesDay">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xs-4">
           <div class="panel panel-default panel-stats">
             <div class="panel-heading">
               <h3 class="panel-title">Least Active Day</h3>
@@ -239,11 +251,46 @@ $def with (context)
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Message Distribution for Hour</h3>
+          <h3 class="panel-title">What's the busiest time of the day?</h3>
         </div>
         <div class="panel-body">
-          <div id="scatterplotMessageByHour"></div>
+          <p class="text-center">How about during the <a href="javascript:setMessageByHourToWeekends()">weekends</a>?</p>
+          <p class="text-center">Or during every <a href="javascript:setMessageByHourToMondays()">monday</a>?</p>
           <div id="lineplotMessageByHour"></div>
+        </div>
+        <div class="messageByHour panel-footer">
+
+          <div class="messageByHour selectDaysButtons">
+
+            <div class="btn-group" data-toggle="buttons">
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="1"> Mon
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="2"> Tue
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="3"> Wed
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="4"> Thu
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="5"> Fri
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="6"> Sat
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="0"> Sun
+              </label>
+            </div>
+            <button class="btn btn-sm btn-success" onclick="updateMessageByHourLineChart()">Update Chart</button>
+
+          </div>
+          <div id="dateSlider" class="dateSlider"></div>
+        
+
         </div>
       </div>
 
@@ -268,31 +315,42 @@ $def with (context)
 <div class="hidden" id="wordHistogram">$context.overview['word_hist']</div>
 <div class="hidden" id="smileHistogram">$context.overview['smile_hist']</div>
 
-<script src="../static/js/charts/utils.js" type="text/javascript"></script>
+<script type="text/javascript">
+  var rawData = {};
 
+  $$(document).ready(function () {
+    loadRawData();
+  });
+
+  function loadRawData() {
+    rawData['daysByUser'] = JSON.parse(document.getElementById('daysByUser').innerHTML);
+    rawData['smileHistogram'] = JSON.parse(document.getElementById('smileHistogram').innerHTML);
+    rawData['wordHistogram'] = JSON.parse(document.getElementById('wordHistogram').innerHTML);
+    rawData['messagesByDay'] = JSON.parse(document.getElementById('messagesByDay').innerHTML);
+  }
+</script>
+
+<script src="../static/js/charts/utils.js" type="text/javascript"></script>
+<script src="../static/js/charts/areas.js" type="text/javascript"></script>
+<script src="../static/js/charts/wordcloud.js" type="text/javascript"></script>
+<script src="../static/js/charts/lines.js" type="text/javascript"></script>
 <script src="../static/js/charts/scatterplots.js" type="text/javascript"></script>
+<script src="../static/js/tables.js" type="text/javascript"></script>
 
 <script type="text/javascript">
+
   $$(document).ready(function() {
-    buildBiggestSpammerGraph();
+    buildBiggestSpammerChart();
     buildBiggestSliceGraph();
     // buildDistributionOverTimeGraph();
     buildWordCloud();
-    buildAreaGraph();
+    buildDailyDistributionAreaChart();
+
+    populateMostAndLeastPopularWordsTable()
     populateEmoticonTable();
-    buildScatterplotMessagesByHour()
+    buildMessageByHourLine()
     // setTimeout(buildBiggestSliceGraph, 15000);
   });
-
-
-  function populateEmoticonTable() {
-    var tbodyEmoticon = $$('#mostPopularEmoticons');
-    var data = JSON.parse(document.getElementById('smileHistogram').innerHTML);
-
-    for(var i = 0; i < Math.min(10, data.length); i++) {
-      tbodyEmoticon.append("<tr><td>" + (i + 1) + "</td><td>" + data[i].text + "</td><td>" + data[i].size + "</td></tr>")
-    }
-  };
 
 
   function buildStackedBarGraph (data) {
@@ -390,61 +448,11 @@ $def with (context)
          .style("fill", color(d))
          .text(d);
       });
-
   };
 
-
-  function buildAreaGraph() {
-    var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 80, 40);
-    var conf2 = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.smallGraphHeight / 3, 30, 40, 20, 40)
-
-    var parseDate = d3.time.format("%Y-%m-%d").parse,
-      formatDate = d3.time.format("%Y");
-
+  function buildStreamGraph() {
+    var conf =  getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 30, 40);
     var color = getColorScale();
-
-    var mostActiveDay = { date: null, num_messages: 0 },
-      leastActiveDay = { date: null, num_messages: Math.pow(2, 53)-1 };
-
-    var data = JSON.parse(document.getElementById('messagesByDay').innerHTML);
-    var lastDate = null;
-
-    for(var i = 0; i < data.length; i) {
-      data[i].date = moment(parseDate(data[i].date));
-
-      var currentDate = moment(data[i].date);
-      var daysDiff = 1;
-
-      if (lastDate !== null) {
-        daysDiff = currentDate.diff(lastDate, 'days');
-
-        if (daysDiff > 1) { // needs to add missing days
-          for(var j = 1; j < daysDiff; j++) {
-            var newDate = moment(currentDate);
-            newDate.subtract(j, 'days');
-            data.splice(i, 0, {date: newDate, num_messages: 0});
-          }
-        }
-      } 
-
-      lastDate = currentDate;
-
-      if (data[i].num_messages > mostActiveDay.num_messages) {
-        mostActiveDay = data[i];
-      }
-      if (data[i].num_messages < leastActiveDay.num_messages && data[i].num_messages !== 0) {
-        leastActiveDay = data[i];
-      }
-
-      i += daysDiff;
-    }
-
-    // fill in section with most and least active days
-    $$('#mostActiveDay').html("<p class='main-stat'>" + mostActiveDay.date.format("dddd, MMMM Do YYYY") + "</p><p class='secondary-stat'>" + mostActiveDay.num_messages + " messages</p>");
-    $$('#leastActiveDay').html("<p class='main-stat'>" + leastActiveDay.date.format("dddd, MMMM Do YYYY") + "</p><p class='secondary-stat'>" + leastActiveDay.num_messages + " messages</p>");
-
-    var minDate = data[0].date;
-    var maxDate = data[data.length - 1].date;
 
     var x = d3.time.scale()
       .range([0, conf.width])
@@ -454,69 +462,63 @@ $def with (context)
       .range([conf.height, 0])
       .domain([0, d3.max(data, function (d) { return d.num_messages; })]);
 
-    var x2 = d3.time.scale()
-      .range([0, conf.width])
-      .domain(x.domain());
-
-    var y2 = d3.scale.linear()
-      .range([conf2.height, 0])
-      .domain(y.domain());
-
     var xAxis = getSimpleAxis(x, "bottom")
-      // .tickSize(-conf.height, 0)
-      .tickPadding(6);
-
-    var xAxis2 = getSimpleAxis(x2, "bottom")
-      .tickPadding(6);
+      .tickPadding(6)
+      .ticks(d3.time.weeks);
 
     var yAxis = getSimpleAxis(y, "left")
-      // .tickSize(-conf.width)
       .tickPadding(6);
 
-    var zoom = d3.behavior.zoom()
-      .x(x)
-      .on('zoom', zoomed);
-
-    var brush = d3.svg.brush()
-      .x(x2)
-      .on("brush", brush);
-
-    var line = d3.svg.line()
-      .x(function (d) { return x(d.date); })
-      .y(function (d) { return y(d.num_messages); });
-
-    var area = d3.svg.area()
-      .interpolate("linear")  // can also be linear or step-after
-      .x(function (d) { return x(d.date); })
-      .y0(conf.height)  // or y(0)
-      .y1(function (d) { return y(d.num_messages); });
-
-    var area2 = d3.svg.area()
-      .interpolate("linear")  // can also be linear or step-after
-      .x(function (d) { return x2(d.date); })
-      .y0(conf2.height)
-      .y1(function (d) { return y2(d.num_messages); });
+    var stack = d3.layout.stack()
+      .offset("silhouette")
+      .values(function (d) {d.num_messages; })
+      .x(function (d) { return d.date; })
+      .y(function (d) { return d.num_messages; })
 
 
-    var svg = d3.select("#stackedAreaSvg").append("svg")
+
+
+
+    var stackedBarChart = d3.select("#stackedBarSvg").append("svg")
       .attr("width", conf.width + conf.margin.left + conf.margin.right)
-      .attr("height", conf.height + conf.margin.top + conf2.height + conf.margin.bottom)
-      // .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + (conf.margin.left ) + "," + conf.margin.top + ")");
 
-    var focus = svg.call(zoom).append("g")
-      .attr("transform", "translate(" + conf.margin.left + "," + conf.margin.top + ")");
+    // build the stacked area chart
 
-    var context = svg.append("g")
-      .attr("transform", "translate(" + conf2.margin.left + "," + (conf.height + 60) + ")");
+    var user_data = _.map(JSON.parse(document.getElementById("biggestSpammerData").innerHTML), function (d) { return d.name; });
+    _.each(user_data, function (name) {
+      color(name);
+    });
 
-    // build the main area chart
+    _.each(data, function (d) {
+      var y0 = 0;
+      d.groups = _.map(d3.keys(d.mbu), function (name) { return {name: name, y0: y0, y1: y0 += d.mbu[name]}; });
+    });
 
-    focus.append("g")
+    var state = stackedBarChart.selectAll(".state")
+      .data(data)
+    .enter().append("g")
+      .attr("class", "g")
+      .attr("transform", function(d) { return "translate(" + x(d.date) + ",0)"; });
+
+    state.selectAll("rect")
+      .data(function(d) {
+        return d.groups; 
+      })
+    .enter().append("rect")
+      .attr("width", 6)
+      .attr("y", function(d) { return y(d.y1); })
+      .attr("height", function(d) { return y(d.y0) - y(d.y1); })
+      .style("fill", function(d) { return color(d.name); });
+
+    stackedBarChart.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + conf.height + ")")
+      .attr("transform", "translate(0, " + conf.height + ")")
       .call(xAxis);
 
-    focus.append("g")
+    stackedBarChart.append("g")
         .attr("class", "y axis")
         .call(yAxis)
       .append("text")
@@ -527,188 +529,40 @@ $def with (context)
         .style("font-size", "10px")
         .text("# Messages");
 
-    var plotArea = focus.append('g')
-      .attr('clip-path', 'url(#plotAreaClip)');
+    var legend = stackedBarChart.append("g")
+      .attr("class","legend")
+      .attr("x", conf.width - conf.margin.right)
+      .attr("y", 25)
+      .attr("height", 200)
+      .attr("width",100);
 
-    plotArea.append('clipPath')
-      .attr('id', 'plotAreaClip')
-      .append('rect')
-      .attr({ width: conf.width + conf.margin.left + conf.margin.right, height: conf.height });
+    legend.selectAll("g").data(user_data)
+      .enter()
+      .append('g')
+      .each(function(d,i){
+        var g = d3.select(this);
+        g.append("rect")
+          .attr("x", conf.width - conf.margin.right - 60)
+          .attr("y", i*25 + 10)
+          .attr("width", 10)
+          .attr("height",10)
+          .style("fill", color(d));
 
-    plotArea.append("path")
-      .datum(data)
-      .attr("class", "area")
-      .attr("d", area);
-
-    plotArea.append("path")
-      .datum(data)
-      .attr("class", "line")
-      .attr("d", line);
-
-    // var bar = focus.append("g")
-    //   .attr("class", "bars");
-
-    // bar.selectAll('.bar')
-    //     .data(data)
-    //   .enter().append('rect')
-    //     .attr("class", "bar")
-    //     .attr("x", function (d) { return x(d.date); })
-    //     .attr("width", x.rangeBand())
-    //     .attr("y", function (d) { return y(d.num_messages); })
-    //     .attr("height", function (d) { return conf.height - y(d.num_messages); })
-    //     .style("fill", "steelblue");
-
-    // build the context area chart
-
-    context.append("path")
-      .datum(data)
-      .attr("class", "overview-area")
-      .attr("d", area2);
-
-    context.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0, " + conf2.height + ")")
-      .call(xAxis2);
-
-    context.append("g")
-        .attr("class", "x brush")
-        .call(brush)
-      .selectAll("rect")
-        .attr("y", -6)
-        .attr("height", conf.height + 7);
-
-    // focus.selectAll(".dot")
-    //     .data(data.filter(function(d) { return d.num_messages; }))
-    //   .enter().append("circle")
-    //   .attr("class", "dot")
-    //   .attr("cx", line.x())
-    //   .attr("cy", line.y())
-    //   .attr("r", 3.5);
-
-
-    // Hover line related code
-
-    var hoverLineGroup = focus.append("g") //the vertical line across the plots
-      .attr("class", "hover-line");
-
-    var dateLabel = focus.append("g")  //the date label at the right upper corner part
-      .attr("class", "dateLabel");
-
-    var container = document.querySelector('#stackedAreaSvg');
-    $$(container).mouseleave(function(event) {
-      // handleMouseOutGraph(event);
-    })
-    $$(container).mousemove(function(event) {
-      handleMouseOverGraph(event);
-    })
-
-
-    buildStackedBarGraph(data);
-
-    // Functions used in the above code
-  
-    function handleMouseOverGraph (event) {
-
-
-      if(brush.empty()) {
-
-        var container = $$(document.querySelector('#stackedAreaSvg'));
-        var offset = container.offset();
-
-        var mouseX = event.pageX - offset.left - conf.margin.left;
-        var mouseY = event.pageY - offset.top;
-      
-        if(mouseX >= 0 && mouseX <= 1058 && mouseY >= 0 && mouseY <= 320) {
-          // console.log(mouseX+"  "+mouseY);
-
-          // show the hover line
-          hoverLineGroup.select('line').remove();
-          hoverLineGroup.append("line")
-            .attr("x1", mouseX).attr("x2", mouseX) 
-            .attr("y1", 0).attr("y2", conf.height) 
-            .style("stroke", "DarkViolet")
-            .style("stroke-width", 0.2);
-
-          
-
-          //update info label
-          displayInfoForPositionX(mouseX);
-        } else { // out of the bounds that we want
-          handleMouseOutGraph(event);
-        }
-      }
-    }
-
-    function handleMouseOutGraph (event) {
-      // hide the hover-line
-      hoverLineGroup.select('line').remove();
-      
-      //Set the value labels to whatever the latest data point is.
-      //when the user is not scanning through the graph
-      dateLabel.select("text").remove();
-    }
-
-
-    function displayInfoForPositionX(xPosition) {
-      // console.log("xPos:"+xPosition);
-
-      var numMessages = 0;
-
-      // get the date on x-axis for the current location
-      var xValue = x.invert(xPosition);
-      console.log(xValue);
-
-      for(var i = 0; i < data.length; i++) {
-        if (data[i].date.date() === xValue.getDate() && data[i].date.month() === xValue.getMonth() && data[i].date.year() === xValue.getFullYear()) {
-          numMessages = data[i].num_messages;
-          break;
-        }
-      }
-
-      dateLabel.select('text').remove();
-      dateLabel.append("text")
-        .attr("x", xPosition - 10)
-        .attr("y", -6)
-        .text(numMessages)
-              .attr("font-family", "sans-serif")
-              .attr("font-size", "14px")
-              .attr("fill", "Gray");
-    }
-
-    function zoomed () {
-        // console.log(d3.event.translate);
-        // console.log(d3.event.scale);
-
-        // focus.select(".x.axis").call(xAxis);
-        // focus.select(".y.axis").call(yAxis);
-        // focus.select('.area')
-        //   .attr("class", "area")
-        //   .attr("d", area);
-    }
-
-    function brush () {
-
-      console.log(brush.extent());
-      x.domain(brush.empty() ? x2.domain() : brush.extent());
-
-      focus.select(".area").attr("class", "area").attr("d", area);
-      focus.select(".line").attr("class", "line").attr("d", line);
-      focus.select(".x.axis").call(xAxis);
-    // circlegroup.selectAll(".dot").attr("cx",function(d){ return x(format.parse(d3.keys(d)[0]));}).attr("cy", function(d){ return y(d3.values(d)[0]);});
-    };
-
-    document.getElementById("stackedAreaResetBrush").addEventListener("click", function () {
-      console.log("DOING THIS");
-
-      brush
-        .clear()
-        .event(d3.select(".brush"));
-    });    
-
+        g.append("text")
+         .attr("x", conf.width - conf.margin.right - 60 + 12)
+         .attr("y", i*25 + 20)
+         .attr("height", 30)
+         .attr("width", 100)
+         .style("fill", color(d))
+         .text(d);
+      });
   };
 
 
-  function buildBiggestSpammerGraph() {
+  
+
+
+  function buildBiggestSpammerChart() {
     var conf = getSvgConf(defaultConfig.smallGraphWidth, defaultConfig.smallGraphHeight, 30, 40, 30, 80);
     var format = d3.format(",.0f");
 
@@ -914,110 +768,10 @@ $def with (context)
     };
   };
 
-  function buildWordCloud() {
-
-    var colors = d3.scale.category20();
-
-    var data = JSON.parse(document.getElementById('wordHistogram').innerHTML);
-    var maxFrequency = data[0].size;
-
-    // fill tables with most and least popular words
-    var tbodyPopular = $$('#mostPopularWords');
-    var tbodyUnpopular = $$('#leastPopularWords');
-
-    for(var i = 0; i < 10; i++) {
-      tbodyPopular.append("<tr><td>" + (i + 1) + "</td><td>" + data[i].text + "</td><td>" + data[i].size + "</td>");
-      tbodyUnpopular.append("<tr><td>" + (i + 1) + "</td><td>" + data[data.length - 1 - i].text + "</td><td>" + data[data.length - 1 - i].size + "</td>");
-    }
-
-    d3.layout.cloud().size([1108, 580])
-      .words(data)
-      .padding(6)
-      .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .fontSize(function (d) { return calculateFontSize(d.size, maxFrequency); })
-      .on("end", drawCloud)
-      .start();
-
-    function calculateFontSize(frequency, max) {
-      return (frequency * 240) / max;
-    }
-
-    function drawCloud(words) {
-      d3.select("#wordCloudSvg").append("svg")
-        .attr("width", 1108)
-        .attr("height", 630)
-        .append("g")
-        .attr("transform", "translate(554, 340)")
-        .selectAll("text")
-          .data(words)
-        .enter().append("text")
-          .style("font-size", function(d) { return d.size + "px"; })
-          .style("font-family", "Impact")
-          .style("fill", function(d, i) { return colors(i); })
-          .attr("text-anchor", "middle")
-          .attr("transform", function(d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-          })
-          .text(function(d) { return d.text; });
-    }
-
-    // code for the search word function
-
-    var tid = null;
-
-    $$('#searchWord').keyup(function(e) {
-
-      // if user is still writing the word, prevent code run
-      if (tid !== null) 
-        clearTimeout(tid);
-
-      var input = $$(e.target).val();
-
-      tid = setTimeout(function() {
-
-        var data = JSON.parse(document.getElementById('wordHistogram').innerHTML); 
-
-        for(var i = 0; i < data.length; i++) {
-          if (data[i].text === input) {
-            
-            document.getElementById('wordCounter').innerHTML = "The word <strong>" + data[i].text + "</strong> has been used <strong>" + data[i].size + "</strong> times";
-            $$('#wordCloudSvg').addClass("filtered");
-
-            var words = $$('#wordCloudSvg text');
-
-            for(var j = 0; j < words.length; j++) {
-              var word = $$(words[j]);
-
-              if ( word.html() === input ) {
-                word.attr("class", "active");
-                return;
-              }
-            }
-
-            return;
-          }
-        }
-
-        if (input !== "")
-          document.getElementById('wordCounter').innerHTML = "That word is not on the Top 150 used words"
-        else
-          document.getElementById('wordCounter').innerHTML = ""
-
-        $$('#wordCloudSvg').removeClass("filtered");
-        var words = $$('#wordCloudSvg text');
-
-        for(var j = 0; j < words.length; j++) {
-          var word = $$(words[j]);
-          word.attr("class", "");
-        }
-
-      }, 200);
-
-    });
-
-  };
-
-  function getColorScale() {
+  /**
+ * Returns a simple color scale depending on the number of users of the conversation
+ **/
+function getColorScale() {
     if($len(context.users) === 2) {
       // return d3.scale.ordinal().range(['#ea4b54', "#bdc3c7"]);
       return d3.scale.ordinal().range(['#3498db', "#ea4b54"])
