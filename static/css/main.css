@@ -35,15 +35,16 @@
 }
 
 
-.bar rect {
+/*.bar rect {
   fill: orange;
 }
 
 .bar text.value {
   fill: white;
-}
+}*/
 
 .axis {
+
   shape-rendering: crispEdges;
 }
 
@@ -79,7 +80,7 @@
     cursor: pointer;
 }
 
-.y-axis path,
+/*.y-axis path,
 .y-axis line,
 .x-axis path,
 .x-axis line,
@@ -90,7 +91,7 @@
         fill: none;
         stroke-width: 1px;
     }
-}
+}*/
 
 .y-axis g line {
     stroke: grey;
@@ -166,13 +167,13 @@
   position: relative;
 }
 
-.panel-stats .main-stat {
+.main-stat {
   text-align: center;
   font-weight: 700;
   font-size: 20px;
 }
 
-.panel-stats .secondary-stat {
+.secondary-stat {
   text-align: center;
   font-size: 16px;
   color: #999;
@@ -189,5 +190,40 @@
   stroke: steelblue;
 }
 
+
+
+
+
+.messageByHour.x.axis path,
+.messageByHour.x.axis line,
+.messageByHour.y.axis path,
+.messageByHour.y.axis line {
+  fill: none;
+  stroke: grey;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.messageByHour.line {
+  stroke: steelblue;
+  stroke-width: 1;
+  fill: none;
+}
+
+.messageByHour.panel-footer {
+  position: relative;
+}
+
+.messageByHour.selectDaysButtons {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.dateSlider {
+  margin-top: 40px;
+}
 
 

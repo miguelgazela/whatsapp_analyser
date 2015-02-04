@@ -52,11 +52,10 @@ function buildDailyDistributionAreaChart() {
       i += daysDiff;  // due to the adition of new elements
     }
 
-    console.log(Math.round(totalNumMessages / numberDays));
-
     // fill in section with most and least active days
     $('#mostActiveDay').html("<p class='main-stat'>" + mostActiveDay.date.format("dddd, MMMM Do YYYY") + "</p><p class='secondary-stat'>" + mostActiveDay.num_messages + " messages</p>");
     $('#leastActiveDay').html("<p class='main-stat'>" + leastActiveDay.date.format("dddd, MMMM Do YYYY") + "</p><p class='secondary-stat'>" + leastActiveDay.num_messages + " messages</p>");
+    $('#averageNumMessagesDay').html("<p class='main-stat'>" + Math.round(totalNumMessages / numberDays)  + "</p><p class='secondary-stat'>messages</p>")
 
     var minDate = data[0].date;
     var maxDate = data[data.length - 1].date;
