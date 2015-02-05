@@ -135,9 +135,6 @@ function buildMessageByHourLine() {
       var min_date = moment(b_data.values.min);
       var max_date = moment(b_data.values.max);
 
-      console.log(min_date);
-      console.log(max_date);
-
       updateMessageByHourLineData(min_date, max_date, [0,1,2,3,4,5,6]);
 
     });
