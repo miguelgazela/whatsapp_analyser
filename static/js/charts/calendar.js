@@ -2,7 +2,7 @@ function buildCalendarViewGraph() {
 
   var width = defaultConfig.largeGraphWidth,
     height = 136,
-    cellSize = 17; // cell size
+    cellSize = 16; // cell size
 
   var day = d3.time.format("%w"),
     week = d3.time.format("%U"),
@@ -59,14 +59,43 @@ function buildCalendarViewGraph() {
   .enter().append("path")
     .attr("class", "calendarView month")
     .attr("d", monthPath);
-
   
   rect.filter(function (d) { return d in data_a; })
     .attr("class", function (d) { 
-      console.log(d);
-      return "calendarView day " + color(Math.round( (data_a[d].values / maxValue) * 8 )); })
-  .select("title")
-    .text(function (d) { return d + ": " + data_a[d].values; });
+      return "calendarView day " + color(Math.round( (data_a[d].values / maxValue) * 8 )); });
+
+  //  Tooltip Object
+    var tooltip = d3.select("body")
+      .append("div")
+      .attr("id", "calendarViewTooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden")
+      .text("a simple tooltip");
+
+  //  Tooltip
+  rect.on("mouseover", mouseover);
+  rect.on("mouseout", mouseout);
+  function mouseover(d) {
+    tooltip.style("visibility", "visible");
+
+    if (typeof data_a[d] !== 'undefined') {
+      tooltip.transition()        
+        .duration(200)      
+        .style("opacity", .9);      
+      tooltip.html("<div class='well'>" + d + "<span>Messages: " + data_a[d].values + "</span></div>")  
+        .style("left", (d3.event.pageX)+30 + "px")     
+        .style("top", (d3.event.pageY) + "px"); 
+    }
+
+  }
+  function mouseout (d) {
+    tooltip.transition()        
+            .duration(500)      
+            .style("opacity", 0); 
+    var $tooltip = $("#calendarViewTooltip");
+    $tooltip.empty();
+  }
 
   function monthPath(t0) {
     var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
