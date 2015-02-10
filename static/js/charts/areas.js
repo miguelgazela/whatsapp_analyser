@@ -163,6 +163,20 @@ function buildDailyDistributionAreaChart() {
       .attr("class", "line")
       .attr("d", line);
 
+    var mostActiveDayHighlight = plotArea.append("rect")
+      .attr("class", "dailyDistAreaHighlight")
+      .attr("x", x(mostActiveDay.date) - 5)
+      .attr("y", 0)
+      .attr("width", 10)
+      .attr("height", conf.height);
+
+    var leastActiveDayHighlight = plotArea.append("rect")
+      .attr("class", "dailyDistAreaHighlightLow")
+      .attr("x", x(leastActiveDay.date) - 5)
+      .attr("y", 0)
+      .attr("width", 10)
+      .attr("height", conf.height);
+
     // build the context area chart
 
     context.append("path")
@@ -214,7 +228,7 @@ function buildDailyDistributionAreaChart() {
         var mouseX = event.pageX - offset.left - conf.margin.left;
         var mouseY = event.pageY - offset.top;
       
-        if(mouseX >= 0 && mouseX <= 1058 && mouseY >= 0 && mouseY <= 320) {
+        if(mouseX >= 0 && mouseX <= 1058 && mouseY >= 0 && mouseY <= 270) {
           // console.log(mouseX+"  "+mouseY);
 
           // show the hover line
@@ -237,8 +251,8 @@ function buildDailyDistributionAreaChart() {
     function handleMouseOutGraph (event) {
       // hide the hover-line
       hoverLineGroup.select('line').remove();
-      $('#dailyDistMainStat').html("");
-      $('#dailyDistSecondaryStat').html("");
+      $('#dailyDistMainStat').html("# Messages: nd");
+      $('#dailyDistSecondaryStat').html("hover the chart for details, or select a time range in the second chart");
       // dateLabel.select("text").remove();
       // messagesLabel.select("text").remove()
     }
@@ -285,6 +299,27 @@ function buildDailyDistributionAreaChart() {
 
       // console.log(brush.extent());
       x.domain(brush.empty() ? x2.domain() : brush.extent());
+
+      if (!brush.empty()) {
+
+        var brushMinDate = moment(brush.extent()[0]);
+        var brushMaxDate = moment(brush.extent()[1]);
+
+        if (mostActiveDay.date.isAfter(brushMinDate) && mostActiveDay.date.isBefore(brushMaxDate)) {
+          d3.select('.dailyDistAreaHighlight').style("opacity", ".4");
+          d3.select('.dailyDistAreaHighlight').attr('x', x(mostActiveDay.date) - 5);
+        } else {
+          d3.select('.dailyDistAreaHighlight').style("opacity", ".0");
+        }
+
+        if (leastActiveDay.date.isAfter(brushMinDate) && leastActiveDay.date.isBefore(brushMaxDate)) {
+          d3.select('.dailyDistAreaHighlightLow').style("opacity", ".4");
+          d3.select('.dailyDistAreaHighlightLow').attr('x', x(leastActiveDay.date) - 5);
+        } else {
+          d3.select('.dailyDistAreaHighlightLow').style("opacity", ".0");
+        }
+
+      }
 
       focus.select(".area").attr("class", "area").attr("d", area);
       focus.select(".line").attr("class", "line").attr("d", line);

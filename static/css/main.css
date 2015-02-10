@@ -201,6 +201,17 @@
 }
 
 
+.dailyDistAreaHighlight {
+  fill: #98df8a;
+  opacity: 0.4;
+}
+
+.dailyDistAreaHighlightLow {
+  fill: #ff9896;
+  opacity: 0.4;
+}
+
+
 .messageByHour.x.axis path,
 .messageByHour.x.axis line,
 .messageByHour.y.axis path,
