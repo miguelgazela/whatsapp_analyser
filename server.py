@@ -12,10 +12,61 @@ urls = (
 	'/', 'index',
 	'/upload', 'upload',
 	'/results', 'results',
-	'/results/words', 'words'
+	'/results/words', 'words',
+	'/example', 'example'
 )
 
 render = web.template.render('templates/')
+
+
+
+def processAnalysis(text):
+	# reading all lines from the text
+	lines = anal.get_lines(text)
+	session.num_messages = len(lines)
+
+	# get different messages of users and days
+	sup_results = anal.superficial_analysis(lines)
+
+	# for each user, process messages
+	session.users = []
+	session.messages_by_user = []
+
+	for user in sup_results['messages'].keys():
+		session.users.append(user)
+		session.messages_by_user.append({
+			'name': user,
+			'num_messages': len(sup_results['messages'][user])
+		})
+
+	# built information about the days where messages were exchanged
+	session.overview = {}
+	session.overview['days'] = []
+
+	# for day in sup_results['days'].keys():
+	# 	session.overview['days'].append({
+	# 		'date': day,
+	# 		'num_messages': sup_results['days'][day]
+	# })
+
+	# get word histogram and sort it
+	hist = anal.get_word_hist(sup_results['messages'])
+
+	word_hist = sorted(hist['words'], key=lambda word: word['size'], reverse=True)
+	smile_hist = sorted(hist['smiles'], key=lambda word: word['size'], reverse=True)
+
+	session.overview['word_hist'] = json.dumps(word_hist[:config['NUM_WORDS_HISTOGRAM']])
+	session.overview['smile_hist'] = json.dumps(smile_hist[:config['NUM_SMILES_HISTOGRAM']])
+	session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
+	session.overview['num_days'] = sup_results['days']['overview']['num_days']
+	session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
+
+	session['complete_word_histogram'] = json.dumps(word_hist)
+	session['complete_smile_histogram'] = json.dumps(smile_hist)
+
+	session.messages_by_user = json.dumps(session.messages_by_user)
+
+
 
 class index:
 
@@ -34,50 +85,7 @@ class upload:
 		x = web.input(conversation={})
 		text = x['conversation'].file.read()
 
-		# reading all lines from the text
-		lines = anal.get_lines(text)
-		session.num_messages = len(lines)
-
-		# get different messages of users and days
-		sup_results = anal.superficial_analysis(lines)
-
-		# for each user, process messages
-		session.users = []
-		session.messages_by_user = []
-
-		for user in sup_results['messages'].keys():
-			session.users.append(user)
-			session.messages_by_user.append({
-				'name': user,
-				'num_messages': len(sup_results['messages'][user])
-			})
-
-		# built information about the days where messages were exchanged
-		session.overview = {}
-		session.overview['days'] = []
-
-		# for day in sup_results['days'].keys():
-		# 	session.overview['days'].append({
-		# 		'date': day,
-		# 		'num_messages': sup_results['days'][day]
-		# })
-
-		# get word histogram and sort it
-		hist = anal.get_word_hist(sup_results['messages'])
-
-		word_hist = sorted(hist['words'], key=lambda word: word['size'], reverse=True)
-		smile_hist = sorted(hist['smiles'], key=lambda word: word['size'], reverse=True)
-
-		session.overview['word_hist'] = json.dumps(word_hist[:config['NUM_WORDS_HISTOGRAM']])
-		session.overview['smile_hist'] = json.dumps(smile_hist[:config['NUM_SMILES_HISTOGRAM']])
-		session.overview['days_by_user'] = json.dumps(sup_results['days']['users'])
-		session.overview['num_days'] = sup_results['days']['overview']['num_days']
-		session.overview['days'] = json.dumps(sup_results['days']['overview']['days'])
-
-		session['complete_word_histogram'] = json.dumps(word_hist)
-		session['complete_smile_histogram'] = json.dumps(smile_hist)
-
-		session.messages_by_user = json.dumps(session.messages_by_user)
+		processAnalysis(text)
 		raise web.seeother('/results')
 
 
@@ -85,6 +93,17 @@ class results:
 
 	def GET(self):
 		return render.base(view.results(session))
+
+
+class example:
+
+	def GET(self):
+
+		with open("chat.txt") as fin:
+			text = fin.read();
+
+		processAnalysis(text)
+		raise web.seeother('/results')
 
 
 class words:

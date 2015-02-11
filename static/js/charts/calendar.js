@@ -76,6 +76,7 @@ function buildCalendarViewGraph() {
   //  Tooltip
   rect.on("mouseover", mouseover);
   rect.on("mouseout", mouseout);
+  
   function mouseover(d) {
     tooltip.style("visibility", "visible");
 

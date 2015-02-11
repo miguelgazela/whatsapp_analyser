@@ -4,6 +4,10 @@
    Author's custom styles
    ========================================================================== */
 
+.navbar-default {
+  background-color: white;
+}
+
 .main-content {
 	padding-top: 50px;
 }
@@ -32,6 +36,29 @@
 
 .navbar-brand {
   margin-left: -15px;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  border-top: 1px solid #e7e7e7;
+  padding-top: 10px;
+}
+
+.jumbotron {
+  background-color: rgba(70, 130, 180, 0.9);
+  color: white;
 }
 
 
@@ -188,8 +215,6 @@
 
 
 
-
-
 /* graph-body is the distribution over time class */
 
 .graph-body .line {
@@ -198,6 +223,11 @@
 
 .graph-body .line circle {
     opacity: 0.1;
+}
+
+
+.biggestSpammerValue {
+  color: white;
 }
 
 
@@ -212,6 +242,16 @@
 }
 
 
+.stackedBar.legend rect,
+.stackedBar.legend text {
+  opacity: 0.4;
+}
+
+
+.stackedBar.x.axis path,
+.stackedBar.x.axis line,
+.stackedBar.y.axis path,
+.stackedBar.y.axis line,
 .messageByHour.x.axis path,
 .messageByHour.x.axis line,
 .messageByHour.y.axis path,
@@ -240,14 +280,18 @@
 
 .messageByHour.selectDaysButtons {
   position: absolute;
-  top: 25px;
+  top: 60px;
   left: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
 
 .dateSlider {
-  margin-top: 40px;
+  margin-top: 80px;
+}
+
+.ui-rangeSlider .ui-rangeSlider-bar {
+  background: rgba(70, 130, 180, 0.4);
 }
 
 .calendarView.day {
@@ -259,6 +303,14 @@
   fill: none;
   stroke: grey;
   stroke-width: 2px;
+}
+
+.chartTooltip {
+  text-align: center;
+}
+
+.chartTooltip p {
+  margin-bottom: 5px;
 }
 
 #calendarViewTooltip {
@@ -306,4 +358,8 @@
   font-weight: 500;
   color: #646C7F;
   font-size: 18px;
+}
+
+.overviewStats {
+  margin-top: 26px;
 }

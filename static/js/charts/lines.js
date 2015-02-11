@@ -40,9 +40,8 @@ function buildMessageByHourLine() {
       if (data.hasOwnProperty(key)) {
         data[key].count += 1;
       } else {
-        data[key] = {date: new Date(0, 0, 0, hour, minute, second), count: 1, mdate: msgDate};
+        data[key] = {date: new Date(0, 0, 0, hour, minute, 0), count: 1, mdate: msgDate};
       }
-
     });
   });
 
@@ -195,7 +194,7 @@ function updateMessageByHourLineData (minDate, maxDate, selectedDays) {
         if (data.hasOwnProperty(key)) {
           data[key].count += 1;
         } else {
-          data[key] = {date: new Date(0, 0, 0, hour, minute, second), count: 1, mdate: msgDate};
+          data[key] = {date: new Date(0, 0, 0, hour, minute, 0), count: 1, mdate: msgDate};
         }
       }
 

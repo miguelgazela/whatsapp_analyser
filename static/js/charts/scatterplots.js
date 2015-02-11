@@ -1,106 +1,48 @@
-function buildScatterplotMessagesByHour() {
-  var conf = getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 30, 40);
-  var color = getColorScale();
-
-  var x = d3.time.scale()
-    .rangeRound([0, conf.width])
-    .domain([new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, 23, 59, 59)]);
-
-  var y = d3.scale.linear()
-    .range([conf.height, 0]);
-
-  var xAxis = getSimpleAxis(x, "bottom");
-  var yAxis = getSimpleAxis(y, "left");
-
-  xAxis.scale(x)
-    .ticks(d3.time.hour,1)
-    .tickFormat(d3.time.format("%Hh"));
-
-  var scatterplotChart = getSvgAddedTo("#scatterplotMessageByHour", conf);
+function buildDistributionOverTimeGraph() {
 
   var raw_data = JSON.parse(document.getElementById('daysByUser').innerHTML);
-  var data = {};
 
+  var data = []
   var minDate = moment();
   var maxDate = moment("1995-12-25");
 
-  
+  _.each(Object.keys(raw_data), function(d) {
+    data.push({
+      name: d,
+      dates: _.map(raw_data[d], function (d) {
+        var msgDate = moment(d);
 
-  // console.log(minDate);
-  // console.log(maxDate);
+        // determine the starting date
+        if(minDate.isAfter(d)) {
+          minDate = msgDate;
+        }
 
-  var data_a = [];
-  _.each(Object.keys(data), function (time) {
-    data_a.push({date: data[time].date, count: data[time].count, mdate: data[time].mdate});
+        if(maxDate.isBefore(d)) {
+          maxDate = msgDate;
+        }
+
+        return msgDate;
+      })
+    });
   });
 
-  var maxNumMessages = _.max(data_a, function (d) { return d.count; }).count;
+  var color = getColorScale();
 
-  y.domain([0, maxNumMessages]);
+  var eventDropsChart = d3.chart.eventDrops()
+    .margin({top: 70, left: 200, bottom: 0, right: 50})
+    .width(defaultConfig.largeGraphWidth)
+    .start(minDate)
+    .end(maxDate)
+    .eventHover(function(el){
+      // console.log(d3.select(el.parentNode).data()[0].name);
+      // console.log(d3.select(el).data());
+      // console.log(d3.select(el).data()[0].format('YYYY-MM-DDT'));
+    })
+    .eventLineColor(function (datum, index) {
+        return color(index);
+    });
 
-  data_a.sort(function(a, b) { 
-    if (a.date > b.date) {
-      return 1;
-    }
-    if (a.date < b.date) {
-      return -1;
-    }
-    return 0;
-  });
-
-  scatterplotChart.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + conf.height + ")")
-      .call(xAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("x", conf.width)
-      .attr("y", -6)
-      .style("text-anchor", "end")
-      .text("Time");
-
-  scatterplotChart.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("# messages");
-
-  var circles = scatterplotChart.selectAll("circle")
-    .data(data_a)
-    .enter()
-    .append("circle");
-
-  var circleAttributes = circles
-    .attr("class", "dot")
-    .attr("r", 3.5)
-    .attr("cx", function (d) { return x(d.date); })
-    .attr("cy", function (d) { return y(d.count); })
-    .style("fill", "steelblue")
-    .style("opacity", 0.5);
-
-  $('#dateSlider').dateRangeSlider({
-    bounds: {
-      min: minDate,
-      max: maxDate
-    },
-    defaultValues: {
-      min: minDate,
-      max: maxDate
-    },
-    arrows: false,
-    formatter: function(val){
-      var days = val.getDate(),
-        month = val.getMonth() + 1,
-        year = val.getFullYear();
-      return days + "/" + month + "/" + year;
-    },
-    range: {min: {days: 1}}
-  });
-
-  buildMessageByHourLine(raw_data, data_a, maxNumMessages);    
+  d3.select('#distributionOverTimeSvg')
+    .datum(data)
+    .call(eventDropsChart);
 };

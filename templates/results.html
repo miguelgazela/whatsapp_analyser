@@ -14,7 +14,7 @@ $def with (context)
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/">Home</a></li>
-        <li><a href="#">About</a></li>
+        <li><a href="/example">Example</a></li>
         <li><a href="/upload">Analyse</a></li>
       </ul>
     </div><!--/.navbar-collapse -->
@@ -31,18 +31,49 @@ $def with (context)
   <div class="row">
 
     <div class="col-xs-12">
-      <div class="page-header">
-        <h1>Analysis Results</h1>
+
+      <h4>Chat with:
+        $for name in context.users: 
+          <span class="label label-default">$name</span>
+      </h4>
+        
+      
+      <div class="row">
+
+        <div class="overviewStats">
+          
+          <div class="col-xs-4">
+            <div class="panel panel-default panel-stats">
+              <div class="panel-body">
+                <p class="main-stat">$context.num_messages</p>
+                <p class="secondary-stat">messages</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-4">
+            <div class="panel panel-default panel-stats">
+              <div class="panel-body">
+                <p class="main-stat">$len(context.users)</p>
+                <p class="secondary-stat">users</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-4">
+            <div class="panel panel-default panel-stats">
+              <div class="panel-body">
+                <p class="main-stat">$context.overview['num_days']</p>
+                <p class="secondary-stat">days</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
-      <h4>Participants</h4>
-      $for name in context.users:
-          <span class="label label-primary">$name</span>
-      
-      <h4>Number of Messages</h4> 
-        $context.num_messages
-
-      <div class="panel panel-default">
+      <!-- <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Overview</h3>
         </div>
@@ -53,7 +84,7 @@ $def with (context)
             </tbody>
           </table>
         </div>
-      </div>
+      </div> -->
 
       <div class="row">
         
@@ -82,14 +113,71 @@ $def with (context)
         </div>
       
       </div>
-      
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Distribution Over Time</h3>
+          <h3 class="panel-title">What's the message distribution over time?</h3>
         </div>
         <div class="panel-body">
           <div id="distributionOverTimeSvg"></div>
+          <p class="text-muted text-center">You can zoom in or out, and then pan the chart for a better view.</p>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Which were the busiest days?</h3>
+        </div>
+        <div class="panel-body">
+          <!-- <button id="dailyDistResetBrush" class="btn btn-default">Reset</button> -->
+          <p class="main-stat" id="dailyDistMainStat"># Messages: nd</p>
+          <p class="secondary-stat" id="dailyDistSecondaryStat">hover the chart for details, or select a time range in the second chart</p>
+          <span class="label label-default" id="areaNumMessages"></span>
+          <div id="dailyDistAreaSvg"></div>
+        </div>
+      </div>
+
+      <div class="row">
+
+        <div class="col-xs-4">
+          <div class="panel panel-default panel-stats">
+            <div class="panel-heading">
+              <h3 class="panel-title">Most Active Day</h3>
+            </div>
+            <div class="panel-body" id="mostActiveDay">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xs-4">
+          <div class="panel panel-default panel-stats">
+            <div class="panel-heading">
+              <h3 class="panel-title">Average Number of Messages per Day</h3>
+            </div>
+            <div class="panel-body" id="averageNumMessagesDay">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xs-4">
+          <div class="panel panel-default panel-stats">
+            <div class="panel-heading">
+              <h3 class="panel-title">Least Active Day</h3>
+            </div>
+            <div class="panel-body" id="leastActiveDay">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Who sent more messages on those days?</h3>
+        </div>
+        <div class="panel-body">
+          <div id="stackedBarSvg"></div>
+          <p class="text-muted text-center">Hover over each bar to view more details</p>
         </div>
       </div>
 
@@ -99,6 +187,52 @@ $def with (context)
         </div>
         <div class="panel-body">
           <div id="calendarViewSvg"></div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">When are you awake and chatty?</h3>
+        </div>
+        <div class="panel-body">
+          <p class="text-muted text-center">How about during the <a href="javascript:setMessageByHourToWeekends()">weekends</a>?</p>
+          <p class="text-muted text-center">Or during every <a href="javascript:setMessageByHourToMondays()">monday</a>?</p>
+          <div id="lineplotMessageByHour"></div>
+        </div>
+        <div class="messageByHour panel-footer">
+          <p class="text-muted">You can select which days should be taken into consideration using the following buttons. You can also change the date range of the conversation using the slider.</p>
+
+          <div class="messageByHour selectDaysButtons">
+
+            <div class="btn-group" data-toggle="buttons">
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="1"> Mon
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="2"> Tue
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="3"> Wed
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="4"> Thu
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="5"> Fri
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="6"> Sat
+              </label>
+              <label class="btn btn-default btn-sm active">
+                <input type="checkbox" autocomplete="off" checked value="0"> Sun
+              </label>
+            </div>
+            <button class="btn btn-sm btn-success" onclick="updateMessageByHourLineChart()">Update Chart</button>
+
+          </div>
+          <div id="dateSlider" class="dateSlider"></div>
+        
+
         </div>
       </div>
 
@@ -191,107 +325,23 @@ $def with (context)
         </div>
 
       </div>
-      
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Which were the busiest days?</h3>
-        </div>
-        <div class="panel-body">
-          <!-- <button id="dailyDistResetBrush" class="btn btn-default">Reset</button> -->
-          <p class="main-stat" id="dailyDistMainStat"># Messages: nd</p>
-          <p class="secondary-stat" id="dailyDistSecondaryStat">hover the chart for details, or select a time range in the second chart</p>
-          <span class="label label-default" id="areaNumMessages"></span>
-          <div id="dailyDistAreaSvg"></div>
-        </div>
-      </div>
 
       <div class="row">
-
-        <div class="col-xs-4">
-          <div class="panel panel-default panel-stats">
-            <div class="panel-heading">
-              <h3 class="panel-title">Most Active Day</h3>
-            </div>
-            <div class="panel-body" id="mostActiveDay">
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xs-4">
-          <div class="panel panel-default panel-stats">
-            <div class="panel-heading">
-              <h3 class="panel-title">Average Number Messages per Day</h3>
-            </div>
-            <div class="panel-body" id="averageNumMessagesDay">
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xs-4">
-          <div class="panel panel-default panel-stats">
-            <div class="panel-heading">
-              <h3 class="panel-title">Least Active Day</h3>
-            </div>
-            <div class="panel-body" id="leastActiveDay">
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Message Distribution for Each User</h3>
-        </div>
-        <div class="panel-body">
-          <div id="stackedBarSvg">
-          </div>
-        </div>
-      </div>
-
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">What's the busiest time of the day?</h3>
-        </div>
-        <div class="panel-body">
-          <p class="text-center">How about during the <a href="javascript:setMessageByHourToWeekends()">weekends</a>?</p>
-          <p class="text-center">Or during every <a href="javascript:setMessageByHourToMondays()">monday</a>?</p>
-          <div id="lineplotMessageByHour"></div>
-        </div>
-        <div class="messageByHour panel-footer">
-
-          <div class="messageByHour selectDaysButtons">
-
-            <div class="btn-group" data-toggle="buttons">
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="1"> Mon
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="2"> Tue
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="3"> Wed
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="4"> Thu
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="5"> Fri
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="6"> Sat
-              </label>
-              <label class="btn btn-default btn-sm active">
-                <input type="checkbox" autocomplete="off" checked value="0"> Sun
-              </label>
-            </div>
-            <button class="btn btn-sm btn-success" onclick="updateMessageByHourLineChart()">Update Chart</button>
-
-          </div>
-          <div id="dateSlider" class="dateSlider"></div>
         
-
+        <div class="col-x2-2">
+           <div class="panel panel-default panel-stats">
+              <div class="panel-body">
+                <p class="main-stat">0</p>
+                <p class="secondary-stat">Image(s)</p>
+              </div>
+            </div>
         </div>
+        <div class="col-x2-2"></div>
+        <div class="col-x2-2"></div>
+        <div class="col-x2-2"></div>
+        <div class="col-x2-2"></div>
+        <div class="col-x2-2"></div>
+
       </div>
 
     </div> <!-- /col-sm-12 -->
@@ -299,14 +349,6 @@ $def with (context)
   </div>
 </div>
 
-
-<hr>
-
-<div class="container">
-  <footer>
-    <p>TU Delft - Data Visualization 2014/2015</p>
-  </footer>
-</div>
 
 <div class="hidden" id="overviewData"></div>
 <div class="hidden" id="daysByUser">$context.overview['days_by_user']</div>
@@ -343,19 +385,41 @@ $def with (context)
   $$(document).ready(function() {
     buildBiggestSpammerChart();
     buildBiggestSliceGraph();
-    // buildDistributionOverTimeGraph();
+    buildDistributionOverTimeGraph();
     buildWordCloud();
     buildDailyDistributionAreaChart();
     populateMostAndLeastPopularWordsTable()
     populateEmoticonTable();
     buildMessageByHourLine();
     buildCalendarViewGraph();
+    buildStackedBarGraph();
   });
 
 
   function buildStackedBarGraph (data) {
     var conf =  getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 30, 40);
     var color = getColorScale();
+
+    var stackedBarChart = d3.select("#stackedBarSvg").append("svg")
+      .attr("width", conf.width + conf.margin.left + conf.margin.right)
+      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + (conf.margin.left ) + "," + conf.margin.top + ")");
+
+    // build the stacked area chart
+
+    // this takes care of the color definition for each name in the correct order
+    var user_data = _.map(JSON.parse(document.getElementById("biggestSpammerData").innerHTML), function (d) { return d.name; });
+    _.each(user_data, function (name) {
+      color(name);
+    });
+
+    var data = rawData.messagesByDay;
+
+    _.each(data, function (d) {
+      var y0 = 0;
+      d.groups = _.map(d3.keys(d.mbu), function (name) { return {name: name, y0: y0, y1: y0 += d.mbu[name]}; });
+    });
 
     var x = d3.time.scale()
       .rangeRound([0, conf.width])
@@ -371,24 +435,6 @@ $def with (context)
     var yAxis = getSimpleAxis(y, "left")
       .tickPadding(6);
 
-    var stackedBarChart = d3.select("#stackedBarSvg").append("svg")
-      .attr("width", conf.width + conf.margin.left + conf.margin.right)
-      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + (conf.margin.left ) + "," + conf.margin.top + ")");
-
-    // build the stacked area chart
-
-    var user_data = _.map(JSON.parse(document.getElementById("biggestSpammerData").innerHTML), function (d) { return d.name; });
-    _.each(user_data, function (name) {
-      color(name);
-    });
-
-    _.each(data, function (d) {
-      var y0 = 0;
-      d.groups = _.map(d3.keys(d.mbu), function (name) { return {name: name, y0: y0, y1: y0 += d.mbu[name]}; });
-    });
-
     var state = stackedBarChart.selectAll(".state")
       .data(data)
     .enter().append("g")
@@ -405,13 +451,16 @@ $def with (context)
       .attr("height", function(d) { return y(d.y0) - y(d.y1); })
       .style("fill", function(d) { return color(d.name); });
 
+    state.on("mouseover", mouseover);
+    state.on("mouseout", mouseout);
+
     stackedBarChart.append("g")
-      .attr("class", "x axis")
+      .attr("class", "stackedBar x axis")
       .attr("transform", "translate(0, " + conf.height + ")")
       .call(xAxis);
 
     stackedBarChart.append("g")
-        .attr("class", "y axis")
+        .attr("class", "stackedBar y axis")
         .call(yAxis)
       .append("text")
         .attr("transform", "rotate(-90)")
@@ -421,145 +470,75 @@ $def with (context)
         .style("font-size", "10px")
         .text("# Messages");
 
-    var legend = stackedBarChart.append("g")
-      .attr("class","legend")
-      .attr("x", conf.width - conf.margin.right)
-      .attr("y", 25)
-      .attr("height", 200)
-      .attr("width",100);
+    //  Tooltip Object
+    var tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "chartTooltip")
+      .attr("id", "stackedBardTooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden")
+      .text("");
 
-    legend.selectAll("g").data(user_data)
-      .enter()
-      .append('g')
-      .each(function(d,i){
-        var g = d3.select(this);
-        g.append("rect")
-          .attr("x", conf.width - conf.margin.right - 60)
-          .attr("y", i*25 + 10)
-          .attr("width", 10)
-          .attr("height",10)
-          .style("fill", color(d));
+    function mouseover (d) {
+      console.log(d);
 
-        g.append("text")
-         .attr("x", conf.width - conf.margin.right - 60 + 12)
-         .attr("y", i*25 + 20)
-         .attr("height", 30)
-         .attr("width", 100)
-         .style("fill", color(d))
-         .text(d);
+      tooltip.style("visibility", "visible");
+
+      var html = "<div class='well'><p><strong># Messages: " + d.num_messages +"</strong></p>";
+
+      _.each(d.groups, function (item) {
+        html += "<p style='color: " + color(item.name) + "'>" + item.name +": " + (item.y1 - item.y0) +" messages</p>";
       });
+
+      html += "</div>";
+
+      console.log(html);
+
+      tooltip.transition()        
+        .duration(200)      
+        .style("opacity", .9);      
+      tooltip.html(html)  
+        .style("left", (d3.event.pageX)+30 + "px")     
+        .style("top", (d3.event.pageY) + "px");
+    }
+
+    function mouseout (d) {
+      tooltip.transition()        
+        .duration(500)      
+        .style("opacity", 0); 
+      var $$tooltip = $$("#stackedBardTooltip");
+      $$tooltip.empty();
+    }
+
+    // var legend = stackedBarChart.append("g")
+    //   .attr("class","stackedBar legend")
+    //   .attr("x", conf.width - conf.margin.right)
+    //   .attr("y", 25)
+    //   .attr("height", 200)
+    //   .attr("width",100);
+
+    // legend.selectAll("g").data(user_data)
+    //   .enter()
+    //   .append('g')
+    //   .each(function(d,i){
+    //     var g = d3.select(this);
+    //     g.append("rect")
+    //       .attr("x", conf.width - conf.margin.right - 60)
+    //       .attr("y", i*25 + 10)
+    //       .attr("width", 10)
+    //       .attr("height",10)
+    //       .style("fill", color(d));
+
+    //     g.append("text")
+    //      .attr("x", conf.width - conf.margin.right - 60 + 12)
+    //      .attr("y", i*25 + 20)
+    //      .attr("height", 30)
+    //      .attr("width", 100)
+    //      .style("fill", color(d))
+    //      .text(d);
+    //   });
   };
-
-  function buildStreamGraph() {
-    var conf =  getSvgConf(defaultConfig.largeGraphWidth, defaultConfig.mediumGraphHeight, 20, 40, 30, 40);
-    var color = getColorScale();
-
-    var x = d3.time.scale()
-      .range([0, conf.width])
-      .domain(d3.extent(data, function (d) { return d.date; }));
-
-    var y = d3.scale.linear()
-      .range([conf.height, 0])
-      .domain([0, d3.max(data, function (d) { return d.num_messages; })]);
-
-    var xAxis = getSimpleAxis(x, "bottom")
-      .tickPadding(6)
-      .ticks(d3.time.weeks);
-
-    var yAxis = getSimpleAxis(y, "left")
-      .tickPadding(6);
-
-    var stack = d3.layout.stack()
-      .offset("silhouette")
-      .values(function (d) {d.num_messages; })
-      .x(function (d) { return d.date; })
-      .y(function (d) { return d.num_messages; })
-
-
-
-
-
-    var stackedBarChart = d3.select("#stackedBarSvg").append("svg")
-      .attr("width", conf.width + conf.margin.left + conf.margin.right)
-      .attr("height", conf.height + conf.margin.top + conf.margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + (conf.margin.left ) + "," + conf.margin.top + ")");
-
-    // build the stacked area chart
-
-    var user_data = _.map(JSON.parse(document.getElementById("biggestSpammerData").innerHTML), function (d) { return d.name; });
-    _.each(user_data, function (name) {
-      color(name);
-    });
-
-    _.each(data, function (d) {
-      var y0 = 0;
-      d.groups = _.map(d3.keys(d.mbu), function (name) { return {name: name, y0: y0, y1: y0 += d.mbu[name]}; });
-    });
-
-    var state = stackedBarChart.selectAll(".state")
-      .data(data)
-    .enter().append("g")
-      .attr("class", "g")
-      .attr("transform", function(d) { return "translate(" + x(d.date) + ",0)"; });
-
-    state.selectAll("rect")
-      .data(function(d) {
-        return d.groups; 
-      })
-    .enter().append("rect")
-      .attr("width", 6)
-      .attr("y", function(d) { return y(d.y1); })
-      .attr("height", function(d) { return y(d.y0) - y(d.y1); })
-      .style("fill", function(d) { return color(d.name); });
-
-    stackedBarChart.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0, " + conf.height + ")")
-      .call(xAxis);
-
-    stackedBarChart.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-      .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .style("font-size", "10px")
-        .text("# Messages");
-
-    var legend = stackedBarChart.append("g")
-      .attr("class","legend")
-      .attr("x", conf.width - conf.margin.right)
-      .attr("y", 25)
-      .attr("height", 200)
-      .attr("width",100);
-
-    legend.selectAll("g").data(user_data)
-      .enter()
-      .append('g')
-      .each(function(d,i){
-        var g = d3.select(this);
-        g.append("rect")
-          .attr("x", conf.width - conf.margin.right - 60)
-          .attr("y", i*25 + 10)
-          .attr("width", 10)
-          .attr("height",10)
-          .style("fill", color(d));
-
-        g.append("text")
-         .attr("x", conf.width - conf.margin.right - 60 + 12)
-         .attr("y", i*25 + 20)
-         .attr("height", 30)
-         .attr("width", 100)
-         .style("fill", color(d))
-         .text(d);
-      });
-  };
-
-
-  
 
 
   function buildBiggestSpammerChart() {
@@ -568,7 +547,7 @@ $def with (context)
 
     var x = d3.scale.linear().range([0, conf.width]);
     var y = d3.scale.ordinal().rangeRoundBands([conf.height, 0], .4);
-    var xAxis = getSimpleAxis(x, "top").tickSize(-conf.height);
+    var xAxis = getSimpleAxis(x, "top").tickSize(-conf.height).tickFormat(d3.format("s"));
     var yAxis = getSimpleAxis(y, "left").tickSize(0);
 
     var color = getColorScale();
@@ -592,12 +571,13 @@ $def with (context)
         .attr("height", y.rangeBand());
 
     bar.append("text")
-        .attr("class", "value")
+        .attr("class", "biggestSpammerValue")
         .attr("x", function(d) { return x(d.num_messages); })
         .attr("y", y.rangeBand() / 2)
         .attr("dx", -3)
         .attr("dy", ".35em")
         .attr("text-anchor", "end")
+        .style("color", "white")
         .text(function(d) { return format(d.num_messages); });
 
     svg.append("g")
@@ -635,75 +615,49 @@ $def with (context)
       .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
+    //  Tooltip Object
+    var tooltip = d3.select("body")
+      .append("div")
+      .attr("id", "calendarViewTooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden")
+      .text("");
+
     var data = JSON.parse(document.getElementById("biggestSpammerData").innerHTML);
+    
 
     var g = svg.selectAll(".arc")
       .data(pie(data))
       .enter().append("g")
         .attr("class", "arc");
 
-    g.append("path")
+    var st = g.append("path")
         .attr("d", arc)
         .style("fill", function(d) { return color(d.data.name); });
 
-    g.append("text")
-        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
-        .attr("dy", ".35em")
-        .style("text-anchor", "middle")
-        .text(function(d) { return d.data.name; });
-
-    var biggestSpammer = _.max(data, function (d) { return d.num_messages;});
-    $$('#biggestSliceRes').html(biggestSpammer.name + ' has the biggest slice with ' + ((biggestSpammer.num_messages / $context.num_messages) * 100).toFixed(2) + '% of all messages sent.').removeClass('hidden');
-  };
-
-
-  function buildDistributionOverTimeGraph() {
-
-    var raw_data = JSON.parse(document.getElementById('daysByUser').innerHTML);
-
-    var data = []
-    var minDate = moment();
-    var maxDate = moment("1995-12-25");
-
-    _.each(Object.keys(raw_data), function(d) {
-      data.push({
-        name: d,
-        dates: _.map(raw_data[d], function (d) {
-          var msgDate = moment(d);
-
-          // determine the starting date
-          if(minDate.isAfter(d)) {
-            minDate = msgDate;
-          }
-
-          if(maxDate.isBefore(d)) {
-            maxDate = msgDate;
-          }
-
-          return msgDate;
-        })
-      });
+    st.on("mouseover", function (e) {
+      tooltip.style("visibility", "visible");
+      tooltip.transition()        
+        .duration(200)      
+        .style("opacity", .9);      
+      tooltip.html("<div class='well'>" + e.data.name + "<span>" + ((e.value / $context.num_messages) * 100).toFixed(0) + "%</span></div>")  
+        .style("left", (d3.event.pageX)+30 + "px")     
+        .style("top", (d3.event.pageY) + "px"); 
     });
 
-    var color = getColorScale();
+    st.on("mouseout", function (e) {
+      tooltip.transition()        
+        .duration(500)      
+        .style("opacity", 0); 
+      var $$tooltip = $$("#calendarViewTooltip");
+      $$tooltip.empty();
+    });
 
-    var eventDropsChart = d3.chart.eventDrops()
-      .margin({top: 70, left: 140, bottom: 20, right: 50})
-      .width(defaultConfig.largeGraphWidth)
-      .start(minDate)
-      .end(maxDate)
-      .eventHover(function(el){
-        console.log(d3.select(el).data());
-        console.log(d3.select(el).data()[0].format('YYYY-MM-DDT'));
-      })
-      .eventLineColor(function (datum, index) {
-          return color(index);
-      });
-
-    d3.select('#distributionOverTimeSvg')
-      .datum(data)
-      .call(eventDropsChart);
+    var biggestSpammer = _.max(data, function (d) { return d.num_messages;});
+    $$('#biggestSliceRes').html(biggestSpammer.name + ' has the biggest slice with ~' + ((biggestSpammer.num_messages / $context.num_messages) * 100).toFixed(0) + '% of all messages sent.').removeClass('hidden');
   };
+
 
 
   /**
